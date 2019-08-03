@@ -1,21 +1,33 @@
 {
-  "name": "design-engine-playground",
+  "name": "@design-engine/design-engine-playground",
   "version": "0.0.1",
-  "description": "",
-  "main": "lib/index.js",
+  "description": "A CLI to create a design engine playground",
+  "main": "src/index.js",
+  "bin": {
+    "@design-engine/design-emgine-playground": "bin/design-engine-playground.js",
+    "design-engine-playground": "bin/design-engine-playground.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "postinstall": "lib/postinstall.js",
-    "uninstall": "lib/uninstall.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "cli",
+    "design-engine-playground"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/de-ai/design-engine-playground.git"
   },
-  "author": "",
+  "author": "Design Engine, Inc",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/de-ai/design-engine-playground/issues"
   },
-  "homepage": "https://github.com/de-ai/design-engine-playground#readme"
+  "homepage": "https://github.com/de-ai/design-engine-playground#readme",
+  "dependencies": {
+    "esm": "^3.2.25"
+  }
 }
