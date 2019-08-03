@@ -1,24 +1,26 @@
 
-function randFloat(min, max) {
-	min = (typeof min !== 'number') ? 0 : min;
-	max = (typeof min !== 'number') ? 1 : max;
+import arg from 'arg';
 
-	return (Math.random() * (max - min) + min);
+function parseArgumentsIntoOptions(rawArgs) {
+	const args = arg({
+		'--create': Boolean,
+		'--yes': Boolean,
+		'-c': '--create',
+		'-y': '--yes'
+	}, {
+		argv: rawArgs.slice(2)
+	});
+
+	return ({
+		skipPrompts: args['--yes'] || false,
+		createPlayground: args['--create'] || false,
+		template: args._[0]
+	});
 }
-
-function randInt(min, max) {
-	return (randFloat(min, max) << 0);
-}
-
 
 export function cli(args) {
 	console.log('cli()', args);
+
+	let options = parseArgumentsIntoOptions(args);
+	console.log(options);
 }
-
-
-
-
-module.exports = {
-	randFloat,
-	randInt
-};

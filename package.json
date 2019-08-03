@@ -28,6 +28,8 @@
   },
   "homepage": "https://github.com/de-ai/design-engine-playground#readme",
   "dependencies": {
-    "esm": "^3.2.25"
+    "arg": "^4.1.1",
+    "esm": "^3.2.25",
+    "inquirer": "^6.5.0"
   }
 }
