@@ -18,7 +18,7 @@ function parseArgumentsIntoOptions(rawArgs) {
 	});
 }
 
-export function cli(args) {
+export async function cli(args) {
 	console.log('cli()', args);
 
 	let options = parseArgumentsIntoOptions(args);
