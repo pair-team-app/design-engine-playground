@@ -1,9 +1,11 @@
 {
   "name": "design-engine-playground",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
+    "postinstall": "src/postinstall.js",
+    "uninstall": "src/uninstall.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
