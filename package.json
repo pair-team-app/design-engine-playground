@@ -27,12 +27,16 @@
     "url": "https://github.com/de-ai/design-engine-playground/issues"
   },
   "homepage": "https://github.com/de-ai/design-engine-playground#readme",
+  "files": [
+    "bin/",
+    "src/"
+  ],
   "dependencies": {
     "arg": "^4.1.1",
     "chalk": "^2.4.2",
     "esm": "^3.2.25",
     "inquirer": "^6.5.0",
-    "ncp": "^2.0.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "project-name": "^1.0.0"
   }
 }

@@ -2,28 +2,25 @@
 import chalk from 'chalk';
 import fetch from 'node-fetch';
 import fs from 'fs';
-import ncp from 'ncp';
-import path from 'path';
+import projectName from 'project-name';
 import { promisify } from 'util';
 
+
 const access = promisify(fs.access);
-const copy = promisify(ncp);
 
 const API_ENDPT_URL = 'https://api.designengine.ai/playground.php';
 
-async function copyProjectFiles(options) {
-	return (copy)
-}
 
-async function queryPlayground(userID) {
+async function queryPlayground(playgroundID) {
 	let response = await fetch(API_ENDPT_URL, {
 		method  : 'POST',
 		headers : {
 			'Content-Type' : 'application/json'
 		},
 		body    : JSON.stringify({
-			action  : 'PLAYGROUND',
-			user_id : userID
+			action        : 'PLAYGROUND',
+			playground_id : playgroundID,
+			title         : projectName()
 		})
 	});
 
@@ -34,14 +31,12 @@ async function queryPlayground(userID) {
 		console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
 	}
 
-	console.log('-->>', response);
+//  console.log('PLAYGROUND -->>', response);
 	return (response);
 }
 
 export async function syncPlayground(options) {
-	options = { ...options,
-		targetDir : options.targetDir || process.cwd()
-	};
+	console.log('%s Project Name (%s)', chalk.cyan.bold('INFO'), projectName());
 
 	try {
 		await access(`${process.cwd()}/build`, fs.constants.R_OK);
@@ -51,21 +46,28 @@ export async function syncPlayground(options) {
 		process.exit(1);
 	}
 
-	console.log('%s Creating playground…', chalk.cyan.bold('INFO'));
+	console.log('%s Queueing playground…', chalk.cyan.bold('INFO'));
+
+	let response = null;
 	try {
-		const playground = await queryPlayground(2);
+		response = await queryPlayground(1);
 
 	} catch (e) {
 		console.log('%s Error querying server! %s', chalk.red.bold('ERROR'), e);
 		process.exit(1);
 	}
 
-	console.log('%s Playground URL', chalk.cyan.bold('INFO'));
+	const playground = { ...response.playground,
+		id  : response.playground.id << 0,
+		new : response.playground.is_new
+	};
+
+//	console.log(response, '-->', playground);
 
 	console.log('%s Compressing files…', chalk.cyan.bold('INFO'));
 	console.log('%s Sending zip…', chalk.cyan.bold('INFO'));
 
 
-	console.log('%s Playground created! %s', chalk.green.bold('DONE'), 'https://playground.designengine.ai/1234');
+	console.log('%s Playground %s! %s', chalk.green.bold('DONE'), (playground), `https://playground.designengine.ai/${playground.id}`);
 	return (true);
 }
