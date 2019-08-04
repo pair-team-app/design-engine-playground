@@ -2,7 +2,6 @@
 import axios from 'axios';
 import chalk from 'chalk';
 import fetch from 'node-fetch';
-//import uploader from 'file-uploader';
 import FormData from 'form-data';
 import fs from 'fs';
 import zipdir from 'zip-dir';
