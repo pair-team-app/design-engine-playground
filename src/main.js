@@ -1,7 +1,9 @@
 
+import axios from 'axios';
 import chalk from 'chalk';
 import fetch from 'node-fetch';
-import uploader from 'file-uploader';
+//import uploader from 'file-uploader';
+import FormData from 'form-data';
 import fs from 'fs';
 import zipdir from 'zip-dir';
 import path from 'path';
@@ -78,16 +80,35 @@ async function sendZip(filepath, playgroundID) {
 //		console.log(err, res);
 //	});
 
+	let formData = new FormData();
+	await fs.readFile(filepath, async(err, data)=> {
+		formData.append('file', data, { filepath,
+			contentType : 'application/zip'
+		});
+
+		await axios.post('http://cdn.designengine.ai/upload.php?dir=/builds', formData, {
+			headers : formData.getHeaders()
+		}).then((response)=> {
+			console.log('::::::::::', 'then', response);
+				return (response.data);
+		}).catch((error)=> {
+			console.log('::::::::::', 'catch', error);
+		});
+	});
+
+
+	/*
 //	let response = await fetch(API_ENDPT_URL, {
 	let response = await fetch('http://cdn.designengine.ai/upload.php?dir=/tmp', {
 		method : 'POST',
 		headers : {
+			'Accept' : 'application/json',
 			'Content-Type' : 'multipart/form-data'
 //			'Content-Type' : 'application/octet-stream'
 		},
-		body : fs.readFileSync(filepath)
+//		body : fs.readFileSync(filepath)
+		body : formData
 	});
-
 
 	try {
 		console.log('::::::::::', response);
@@ -99,6 +120,9 @@ async function sendZip(filepath, playgroundID) {
 
 	console.log('ZIP -->>', response);
 	return (response);
+	*/
+
+//	return (null);
 }
 
 
