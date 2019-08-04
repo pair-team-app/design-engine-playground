@@ -2,24 +2,29 @@
 import chalk from 'chalk';
 import fetch from 'node-fetch';
 import fs from 'fs';
-import JSZip from 'jszip';
+import zipdir from 'zip-dir';
 import path from 'path';
 import projectName from 'project-name';
 import { promisify } from 'util';
 
 
 const access = promisify(fs.access);
-const zip = new JSZip();
 
 const API_ENDPT_URL = 'https://api.designengine.ai/playground.php';
 
 
-const getCache = async(key)=> {
+
+const cacheDir = ()=> {
 	const plat = process.platform;
 	const appName = [...projectName().split('/')].pop();
 	const homeDir = process.env[(plat === 'win32') ? 'USERPROFILE' : 'HOME'];
-	const appDir = (plat === 'win32') ? path.join(homeDir, 'AppData', appName) : path.join(homeDir, `.${appName}`);
-	const cachePath = path.join(appDir, 'caches');
+
+	return ((plat === 'win32') ? path.join(homeDir, 'AppData', appName) : path.join(homeDir, `.${appName}`));
+};
+
+
+const getCache = async(key)=> {
+	const cachePath = path.join(cacheDir(), 'caches');
 
 	if (!fs.existsSync(cachePath)) {
 		fs.readFile(cachePath, 'utf8', (err, contents)=> {
@@ -33,13 +38,10 @@ const getCache = async(key)=> {
 
 
 const writeCache = async(key, val)=> {
-	const plat = process.platform;
-	const appName = [...projectName().split('/')].pop();
-	const homeDir = process.env[(plat === 'win32') ? 'USERPROFILE' : 'HOME'];
-	const appDir = (plat === 'win32') ? path.join(homeDir, 'AppData', appName) : path.join(homeDir, `.${appName}`);
-	const cachePath = path.join(appDir, 'caches');
+	const cachePath = path.join(cacheDir(), 'caches');
+	const appPath = path.join(cachePath, '..', '..');
 
-	if (!fs.existsSync(appDir)) {
+	if (!fs.existsSync(appPath)) {
 		fs.mkdir(appDir, (err)=> {
 			fs.writeFile(cachePath, JSON.stringify({ [key] : val }), (err)=> {});
 		})
@@ -50,24 +52,22 @@ const writeCache = async(key, val)=> {
 };
 
 
-async function createZip(srcPath) {
+async function createZip(srcPath, playgroundID) {
 	console.log('createZip', srcPath);
 
-	fs.readdir(srcPath, (err, files)=> {
-		files.forEach((file, i)=> {
-			console.log('FILE', file);
-			zip.file(file, fs.readFileSync(path.join(srcPath, file)), {
-				createFolders : true
-			});
-		})
-	});
+	zipdir(srcPath, {
+		saveTo : path.join(cacheDir(), `build_${playgroundID}.zip`)
 
-	zip.generateNodeStream({
-		type : 'nodebuffer',
-		streamFiles : true
-	}).pipe(fs.createWriteStream('out.zip')).on('finish', ()=> {
+	}, (err, buffer)=> {
 		console.log('>>>>>> ZIPPED');
 	});
+}
+
+async function sendZip(filepath, playgroundID) {
+	console.log('sendZip', filepath, playgroundID);
+
+	let formData = new FormData();
+	formData.append('file', )
 }
 
 
@@ -104,8 +104,6 @@ export async function syncPlayground(options) {
 		process.exit(1);
 	}
 
-	await createZip(path.join(process.cwd(), 'build'));
-
 	console.log('%s Queueing playground…', chalk.cyan.bold('INFO'));
 
 	let response = null;
@@ -128,6 +126,9 @@ export async function syncPlayground(options) {
 
 
 	console.log('%s Compressing files…', chalk.cyan.bold('INFO'));
+	await createZip(path.join(process.cwd(), 'build'), playground.id);
+
+
 	console.log('%s Sending zip…', chalk.cyan.bold('INFO'));
 
 
