@@ -2,12 +2,14 @@
 import chalk from 'chalk';
 import fetch from 'node-fetch';
 import fs from 'fs';
+import JSZip from 'jszip';
 import path from 'path';
 import projectName from 'project-name';
 import { promisify } from 'util';
 
 
 const access = promisify(fs.access);
+const zip = new JSZip();
 
 const API_ENDPT_URL = 'https://api.designengine.ai/playground.php';
 
@@ -48,6 +50,27 @@ const writeCache = async(key, val)=> {
 };
 
 
+async function createZip(srcPath) {
+	console.log('createZip', srcPath);
+
+	fs.readdir(srcPath, (err, files)=> {
+		files.forEach((file, i)=> {
+			console.log('FILE', file);
+			zip.file(file, fs.readFileSync(path.join(srcPath, file)), {
+				createFolders : true
+			});
+		})
+	});
+
+	zip.generateNodeStream({
+		type : 'nodebuffer',
+		streamFiles : true
+	}).pipe(fs.createWriteStream('out.zip')).on('finish', ()=> {
+		console.log('>>>>>> ZIPPED');
+	});
+}
+
+
 async function queryPlayground(playgroundID) {
 	let response = await fetch(API_ENDPT_URL, {
 		method  : 'POST',
@@ -74,12 +97,14 @@ async function queryPlayground(playgroundID) {
 
 export async function syncPlayground(options) {
 	try {
-		await access(`${process.cwd()}/build`, fs.constants.R_OK);
+		await access(path.join(process.cwd(), 'build'), fs.constants.R_OK);
 
 	} catch (e) {
 		console.log('%s Couldn\'t find build dir! %s', chalk.red.bold('ERROR'), e);
 		process.exit(1);
 	}
+
+	await createZip(path.join(process.cwd(), 'build'));
 
 	console.log('%s Queueing playground…', chalk.cyan.bold('INFO'));
 
