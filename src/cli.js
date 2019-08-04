@@ -38,7 +38,7 @@ async function promptURL(options) {
 }
 
 export async function cli(args) {
-	console.log('cli()');
+//	console.log('cli()');
 
 	let options = parseArgs(args);
 	options = await promptURL(options);
