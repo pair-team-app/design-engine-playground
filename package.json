@@ -39,7 +39,6 @@
     "esm": "^3.2.25",
     "form-data": "^2.5.0",
     "inquirer": "^6.5.0",
-    "node-cache": "^4.2.1",
     "node-fetch": "^2.6.0",
     "project-name": "^1.0.0",
     "zip-dir": "^1.0.2"
