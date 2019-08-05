@@ -1,5 +1,5 @@
 {
-  "name": "@design-engine/design-engine-playground",
+  "name": "design-engine-playground",
   "version": "0.0.1",
   "description": "A CLI to create a design engine playground",
   "main": "src/index.js",
@@ -11,7 +11,8 @@
     "access": "public"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npm link"
   },
   "keywords": [
     "cli",

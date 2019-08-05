@@ -175,7 +175,6 @@ export async function syncPlayground(options) {
 	};
 
 //	console.log(response, '-->', playground);
-
 	await writeCache('playground_id', playground.id);
 
 
