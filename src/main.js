@@ -1,13 +1,13 @@
 
 import axios from 'axios';
 import chalk from 'chalk';
-import fetch from 'node-fetch';
 import FormData from 'form-data';
 import fs from 'fs';
-import zipdir from 'zip-dir';
+import fetch from 'node-fetch';
 import path from 'path';
 import projectName from 'project-name';
 import { promisify } from 'util';
+import zipdir from 'zip-dir';
 
 const access = promisify(fs.access);
 
@@ -179,10 +179,8 @@ export async function syncPlayground(options) {
 		console.log('%s Sending zip…', chalk.cyan.bold('INFO'));
 		await sendZip(zipPath, playground.id);
 
-		console.log('%s Playground created! %s', chalk.green.bold('DONE'), `https://playground.designengine.ai/${playground.id}`);
+		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`https://playground.designengine.ai/${playground.id}`));
 	});
-
-//	const zipPath = '/Users/mattholcombe/.design-engine-playground/build_1.zip';
 
 	return (true);
 }
