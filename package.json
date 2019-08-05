@@ -15,7 +15,8 @@
   },
   "keywords": [
     "cli",
-    "design-engine-playground"
+    "design-engine-playground",
+    "design-system"
   ],
   "repository": {
     "type": "git",
