@@ -3,6 +3,7 @@ import axios from 'axios';
 import chalk from 'chalk';
 import FormData from 'form-data';
 import fs from 'fs';
+import open from 'open';
 import fetch from 'node-fetch';
 import path from 'path';
 import projectName from 'project-name';
@@ -12,7 +13,6 @@ import zipdir from 'zip-dir';
 const access = promisify(fs.access);
 
 const API_ENDPT_URL = 'https://api.designengine.ai/playground.php';
-
 
 
 const cacheDir = ()=> {
@@ -34,27 +34,23 @@ const getCache = async(key)=> {
 	const cachePath = path.join(cacheDir(), 'caches');
 
 	if (!fs.existsSync(cachePath)) {
+		fs.writeFile(cachePath, '{}', (err)=> {});
 		return (null);
 
 	} else {
-		const contents = fs.readFileSync(cachePath);
-		return (JSON.parse(contents)[key]);
+		const caches = JSON.parse(fs.readFileSync(cachePath));
+		return ((typeof caches[key] === 'undefined') ? null : caches[key]);
 	}
 };
 
 
 const writeCache = async(key, val)=> {
-	const cachePath = path.join(cacheDir(), 'caches');
-	const appPath = path.join(cachePath, '..', '..');
+	const cachePath = await path.join(cacheDir(), 'caches');
+	const caches = { ...JSON.parse(fs.readFileSync(cachePath)),
+		[key] : val
+	};
 
-	if (!fs.existsSync(appPath)) {
-		fs.mkdir(appDir, (err)=> {
-			fs.writeFile(cachePath, JSON.stringify({ [key] : val }), (err)=> {});
-		});
-
-	} else {
-		fs.writeFile(cachePath, JSON.stringify({ [key] : val }), (err)=> {});
-	}
+	fs.writeFile(cachePath, JSON.stringify(caches), (err)=> {});
 };
 
 
@@ -74,12 +70,23 @@ async function sendZip(filepath, playgroundID) {
 //	console.log('sendZip', filepath, playgroundID);
 
 	let formData = new FormData();
+	formData.append('playground_id', playgroundID);
 	formData.append('file', fs.readFileSync(filepath), { filepath,
 		contentType : 'application/zip'
 	});
 
-	let response = await axios.post('http://cdn.designengine.ai/upload.php?dir=/builds', formData, {
-		headers : formData.getHeaders()
+//	formData.append('file', fs.readFileSync(filepath));
+	let response = await axios.post('https://api.designengine.ai/upload.php?dir=/builds', formData, {
+//	let response = await axios.post('http://cdn.designengine.ai/upload.php?dir=/builds', formData, {
+//	let response = await axios.post('http://terminal.designengine.ai/upload?playground_id=9', formData, {
+		headers : {
+			...formData.getHeaders(),
+			//			'Accept'       : 'application/json',
+//			'Content-Type' : 'multipart/form-data',
+//			'Content-Type' : 'application/octet-stream',
+//			'Content-Type': 'application/x-www-form-urlencoded',
+//			'Content-Length': fs.statSync(filepath).size
+		}
 	});
 
 	try {
@@ -89,7 +96,7 @@ async function sendZip(filepath, playgroundID) {
 		console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
 	}
 
-//	console.log('ZIP -->>', response.files.file.name);
+//	console.log('ZIP -->>', response);
 	return (response);
 
 
@@ -153,6 +160,7 @@ export async function syncPlayground(options) {
 	}
 
 	const playgroundID = await getCache('playground_id');
+	const openedPlayground = await getCache('playground_open');
 
 	console.log('%s Queueing playground…', chalk.cyan.bold('INFO'));
 	let response = null;
@@ -179,7 +187,11 @@ export async function syncPlayground(options) {
 		console.log('%s Sending zip…', chalk.cyan.bold('INFO'));
 		await sendZip(zipPath, playground.id);
 
-		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`https://playground.designengine.ai/${playground.id}`));
+		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/${playground.id}`));
+		if (!openedPlayground) {
+			await writeCache('playground_open', true);
+			open(`http://playground.designengine.ai/${playground.id}`);
+		}
 	});
 
 	return (true);
