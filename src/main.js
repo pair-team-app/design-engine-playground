@@ -190,7 +190,8 @@ export async function syncPlayground(options) {
 		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/${playground.id}`));
 		if (!openedPlayground) {
 			await writeCache('playground_open', true);
-			open(`http://playground.designengine.ai/${playground.id}`);
+//			open(`http://playground.designengine.ai/${playground.id}`);
+			open(`http://playground.designengine.ai/${55}`);
 		}
 	});
 
