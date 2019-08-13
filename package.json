@@ -4,7 +4,6 @@
   "description": "A CLI to create a design engine playground",
   "main": "src/index.js",
   "bin": {
-    "@design-engine/design-emgine-playground": "bin/design-engine-playground.js",
     "design-engine-playground": "bin/design-engine-playground.js"
   },
   "publishConfig": {
@@ -42,6 +41,7 @@
     "node-fetch": "^2.6.0",
     "open": "^6.4.0",
     "project-name": "^1.0.0",
+    "puppeteer": "^1.19.0",
     "zip-dir": "^1.0.2"
   }
 }

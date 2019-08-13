@@ -2,7 +2,7 @@
 import arg from 'arg';
 import inquirer from 'inquirer';
 
-import { syncPlayground } from './main';
+import {puppet, syncPlayground} from './main';
 
 
 function parseArgs(argv) {
@@ -43,5 +43,6 @@ export async function cli(args) {
 	let options = parseArgs(args);
 	options = await promptURL(options);
 //	console.log(options);
-	await syncPlayground(options);
+//	await syncPlayground(options);
+	await puppet();
 }

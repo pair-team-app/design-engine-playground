@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import FormData from 'form-data';
 import fs from 'fs';
 import open from 'open';
+import puppeteer from 'puppeteer';
 import fetch from 'node-fetch';
 import path from 'path';
 import projectName from 'project-name';
@@ -196,4 +197,13 @@ export async function syncPlayground(options) {
 	});
 
 	return (true);
+}
+
+export async function puppet() {
+	const browser = await puppeteer.launch();
+	const page = await browser.newPage();
+	await page.goto('http://localhost:3000/');
+	await page.screenshot({path:'example.png'});
+
+	await browser.close();
 }
