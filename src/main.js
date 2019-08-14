@@ -3,6 +3,7 @@ import axios from 'axios';
 import chalk from 'chalk';
 import FormData from 'form-data';
 import fs from 'fs';
+import http from 'http';
 import open from 'open';
 import puppeteer from 'puppeteer';
 import fetch from 'node-fetch';
@@ -14,6 +15,19 @@ import zipdir from 'zip-dir';
 const access = promisify(fs.access);
 
 const API_ENDPT_URL = 'https://api.designengine.ai/playground.php';
+const HOSTNAME = '127.0.0.1';
+const PORT = 1066;
+
+const MIME_TYPES = {
+	html : 'text/html',
+	txt  : 'text/plain',
+	css  : 'text/css',
+	gif  : 'image/gif',
+	jpg  : 'image/jpeg',
+	png  : 'image/png',
+	svg  : 'image/svg+xml',
+	js   : 'application/javascript'
+};
 
 
 const cacheDir = ()=> {
@@ -200,10 +214,47 @@ export async function syncPlayground(options) {
 }
 
 export async function puppet() {
-	const browser = await puppeteer.launch();
-	const page = await browser.newPage();
-	await page.goto('http://localhost:3000/');
-	await page.screenshot({path:'example.png'});
+	server.listen(PORT, HOSTNAME, async() => {
+		console.log(`Server running at http://${HOSTNAME}:${PORT}/`);
 
-	await browser.close();
+		const browser = await puppeteer.launch();
+		const page = await browser.newPage();
+		await page.goto('http://localhost:1066/');
+		await page.screenshot({path:'example.png'});
+
+		await browser.close();
+
+//		server.close();
+	});
 }
+
+
+const server = http.createServer((req, res) => {
+	const reqPath = req.url.toString().split('?')[0];
+	const dir = path.join(process.cwd(), 'build');
+	const file = path.join(dir, reqPath.replace(/\/$/, '/index.html'));
+
+	if (file.indexOf(dir + path.sep) !== 0) {
+		res.statusCode = 403;
+		res.setHeader('Content-Type', 'text/plain');
+		return (res.end('Forbidden'));
+	}
+
+	const readStream = fs.createReadStream(file);
+	readStream.on('open', ()=> {
+		res.setHeader('Content-Type', MIME_TYPES[path.extname(file).slice(1)] || 'text/plain');
+		readStream.pipe(res);
+	});
+
+	readStream.on('error', ()=> {
+		res.setHeader('Content-Type', 'text/plain');
+		res.statusCode = 404;
+		res.end('Not found');
+	});
+
+
+
+//	res.statusCode = 200;
+//	res.setHeader('Content-Type', 'text/plain');
+//	res.end('Hello World' + Math.random() + '\n');
+});
