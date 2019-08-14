@@ -221,6 +221,9 @@ export async function puppet() {
 		const page = await browser.newPage();
 		await page.goto('http://localhost:1066/');
 		await page.screenshot({path:'example.png'});
+//		const buttons = await page.$$eval('input[type="button"]', (btns)=> { return (btns.map((btn)=> btn.value)); });
+		const buttons = await page.$$eval('input[type="button"]', (btns)=> { return (btns.map((btn)=> {return ({width:getComputedStyle(btn).width, height:getComputedStyle(btn).height}); })); });
+		console.log('Btn values:', buttons);
 
 		await browser.close();
 
