@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import FormData from 'form-data';
 import fs from 'fs';
 import http from 'http';
+import mysql from 'mysql';
 import open from 'open';
 import puppeteer from 'puppeteer';
 import fetch from 'node-fetch';
@@ -220,12 +221,62 @@ export async function puppet() {
 		const browser = await puppeteer.launch();
 		const page = await browser.newPage();
 		await page.goto('http://localhost:1066/');
-		await page.screenshot({path:'example.png'});
+		const extract = await parsePage(page);
+
+		const playgroundID = await getCache('playground_id');
+		const openedPlayground = await getCache('playground_open');
+
+		console.log('%s Queueing playground…', chalk.cyan.bold('INFO'));
+		let response = null;
+		try {
+			response = await queryPlayground(playgroundID);
+
+		} catch (e) {
+			console.log('%s Error querying server! %s', chalk.red.bold('ERROR'), e);
+			process.exit(1);
+		}
+
+		const playground = { ...response.playground,
+			id  : response.playground.id << 0,
+			new : response.playground.is_new
+		};
+
+		await writeCache('playground_id', playground.id);
+
+//		if (playground.new) {
+
+		response = await fetch(API_ENDPT_URL, {
+			method  : 'POST',
+			headers : {
+				'Content-Type' : 'application/json'
+			},
+			body    : JSON.stringify({
+				action        : 'ADD_COMPONENTS',
+				playground_id : playgroundID,
+				elements      : extract.elements
+			})
+		});
+
+		try {
+			response = await response.json();
+
+		} catch (e) {
+			console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
+		}
+//		}
+
+
+
+//		await page.screenshot({path:'example.png'});
 //		const buttons = await page.$$eval('input[type="button"]', (btns)=> { return (btns.map((btn)=> btn.value)); });
-		const buttons = await page.$$eval('input[type="button"]', (btns)=> { return (btns.map((btn)=> {return ({width:getComputedStyle(btn).width, height:getComputedStyle(btn).height}); })); });
-		console.log('Btn values:', buttons);
+//		const buttons = await page.$$eval('input[type="button"]', (btns)=> { return (btns.map((btn)=> {return ({width:getComputedStyle(btn).width, height:getComputedStyle(btn).height}); })); });
+//		console.log('extract:', JSON.stringify(extract));
+//		console.log('buttons:', buttons);
 
 		await browser.close();
+
+
+
 
 //		server.close();
 	});
@@ -254,10 +305,237 @@ const server = http.createServer((req, res) => {
 		res.statusCode = 404;
 		res.end('Not found');
 	});
-
-
-
-//	res.statusCode = 200;
-//	res.setHeader('Content-Type', 'text/plain');
-//	res.end('Hello World' + Math.random() + '\n');
 });
+
+
+const connection = mysql.createConnection({
+	host     : '138.197.216.56',
+	user     : 'designengine_usr',
+	password : 'f4zeHUga.age',
+	database : 'designengine'
+});
+connection.connect();
+
+
+
+async function extractElements(page) {
+	return ({
+		'links'   : await page.$$eval('a', (els)=> {
+			return (els.map((el)=> {
+				const elementStyles = (element)=> {
+					let styles = {};
+					const compStyle = getComputedStyle(element);
+					for (let i=0; i<compStyle.length; i++) {
+						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]);
+					}
+
+					return (styles);
+				};
+
+				const styles = elementStyles(el);
+				const elementColor = ()=> {
+					return ({
+						background : (Object.keys(styles).includes('background-color')) ? styles['background-color'] : rgbaObject('rgba(0, 0, 0, 1)'),
+						foreground : (Object.keys(styles).includes('color')) ? styles['color'] : rgbaObject('rgba(0, 0, 0, 1)')
+					});
+				};
+
+				const elementFont = ()=> {
+					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
+					return ({
+						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/"/g, '') : '',
+						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
+						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
+						line    : line
+					})
+				};
+
+				const elementSize = ()=> {
+					return ({
+						width  : styles.width.replace('px', '') << 0,
+						height : styles.height.replace('px', '') << 0
+					});
+				};
+
+				return ({
+					html   : el.outerHTML.replace('"', '\"'),
+					styles : styles,
+					border : null,
+					color  : elementColor(),
+					font   : elementFont(),
+					size   : elementSize(),
+					text   : el.innerText
+				});
+			}));
+		}),
+
+		'buttons' : await page.$$eval('input[type="button"]', (els)=> {
+			return (els.map((el)=> {
+				const elementStyles = (element)=> {
+					let styles = {};
+					const compStyle = getComputedStyle(element);
+					for (let i=0; i<compStyle.length; i++) {
+						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]);
+					}
+
+					return (styles);
+				};
+
+				const styles = elementStyles(el);
+				const elementColor = ()=> {
+					return ({
+						background : (Object.keys(styles).includes('background-color')) ? styles['background-color'] : rgbaObject('rgba(0, 0, 0, 1)'),
+						foreground : (Object.keys(styles).includes('color')) ? styles['color'] : rgbaObject('rgba(0, 0, 0, 1)')
+					});
+				};
+
+				const elementFont = ()=> {
+					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
+					return ({
+						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/"/g, '') : '',
+						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
+						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
+						line    : line
+					})
+				};
+
+				const elementSize = ()=> {
+					return ({
+						width  : styles.width.replace('px', '') << 0,
+						height : styles.height.replace('px', '') << 0
+					});
+				};
+
+				return ({
+					html   : el.outerHTML.replace('"', '\"'),
+					styles : styles,
+					border : null,
+					color  : elementColor(),
+					font   : elementFont(),
+					size   : elementSize(),
+					text   : el.value
+				});
+			}));
+		}),
+
+		'images'  : await page.$$eval('img', (els)=> {
+			return (els.map((el)=> {
+				const elementStyles = (element)=> {
+					let styles = {};
+					const compStyle = getComputedStyle(element);
+					for (let i=0; i<compStyle.length; i++) {
+						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]);
+					}
+
+					return (styles);
+				};
+
+				const styles = elementStyles(el);
+				const elementColor = ()=> {
+					return ({
+						background : (Object.keys(styles).includes('background-color')) ? styles['background-color'] : rgbaObject('rgba(0, 0, 0, 1)'),
+						foreground : (Object.keys(styles).includes('color')) ? styles['color'] : rgbaObject('rgba(0, 0, 0, 1)')
+					});
+				};
+
+				const elementFont = ()=> {
+					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
+					return ({
+						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/"/g, '') : '',
+						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
+						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
+						line    : line
+					})
+				};
+
+				const elementSize = ()=> {
+					return ({
+						width  : styles.width.replace('px', '') << 0,
+						height : styles.height.replace('px', '') << 0
+					});
+				};
+
+				const imgSrcData = (url)=> {
+					return (new Promise((resolve, reject)=> {
+						let xhr = new XMLHttpRequest();
+						xhr.open('GET', url);
+						xhr.onload = ()=> {
+							if (this.status >= 200 && this.status < 300) {
+								const mediaType = xhr.getResponseHeader('content-type');
+								const bytes = new Uint8Array(xhr.response);
+								const binary = [].map.call(bytes, (byte)=> (String.fromCharCode(byte))).join('');
+								const base64 = [
+									'data:',
+									(mediaType) ? `${mediaType};` : '',
+									'base64,',
+									btoa(binary)
+								].join('');
+
+								resolve(base64);
+
+								//resolve(xhr.response);
+
+							} else {
+								reject({
+									status     : this.status,
+									statusText : xhr.statusText
+								});
+							}
+						};
+
+						xhr.onerror = ()=> {
+							reject({
+								status       : this.status,
+								statusText   : xhr.statusText
+							});
+						};
+
+						xhr.send();
+					}));
+				};
+
+				const imgData = imgSrcData(el.src);
+				return ({
+					html   : el.outerHTML.replace('"', '\"'),
+					styles : styles,
+					border : null,
+					color  : elementColor(),
+					font   : elementFont(),
+					size   : elementSize(),
+					text   : el.innerText,
+					data   : imgData
+				});
+			}));
+		}),
+	});
+}
+
+export function hexRGBA(color) {
+	const { red, green, blue, alpha } = color.match(/^#?(?<red>[A-Fa-f\d]{2})(?<green>[A-Fa-f\d]{2})(?<blue>[A-Fa-f\d]{2})((?<alpha>[A-Fa-f\d]{2})?)$/).groups;
+	return ({
+		r : parseInt(red, 16),
+		g : parseInt(green, 16),
+		b : parseInt(blue, 16),
+		a : (alpha) ? parseInt(alpha, 16) : 255
+	});
+}
+
+async function parsePage(page) {
+	return ({
+		html       : {
+			doc    : await page.content(),
+			styles : await page.evaluate(()=> (getComputedStyle(document.documentElement)))
+		},
+		elements   : await extractElements(page),
+		playground : null
+	});
+}
+
+function rgbaObject(color) {
+	return ({
+		r : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.red) << 0,
+		g : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.green) << 0,
+		b : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.blue) << 0,
+		a : (color.includes('rgba')) ? parseFloat(color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+), (?<alpha>\d(\.\d+)?)\)$/).groups.alpha) * 255 : 255
+	});
+}

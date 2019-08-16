@@ -2,7 +2,7 @@
 import arg from 'arg';
 import inquirer from 'inquirer';
 
-import {puppet, syncPlayground} from './main';
+import { puppet, syncPlayground } from './main';
 
 
 function parseArgs(argv) {
