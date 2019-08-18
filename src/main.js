@@ -4,13 +4,13 @@ import chalk from 'chalk';
 import FormData from 'form-data';
 import fs from 'fs';
 import http from 'http';
-import mysql from 'mysql';
 import open from 'open';
 import puppeteer from 'puppeteer';
 import fetch from 'node-fetch';
 import path from 'path';
 import projectName from 'project-name';
 import { promisify } from 'util';
+import { XMLHttpRequest } from 'xmlhttprequest';
 import zipdir from 'zip-dir';
 
 const access = promisify(fs.access);
@@ -215,13 +215,21 @@ export async function syncPlayground(options) {
 }
 
 export async function puppet() {
-	server.listen(PORT, HOSTNAME, async() => {
-		console.log(`Server running at http://${HOSTNAME}:${PORT}/`);
+	server.listen(PORT, HOSTNAME, async()=> {
+//		console.log(`Server running at http://${HOSTNAME}:${PORT}/`);
 
 		const browser = await puppeteer.launch();
 		const page = await browser.newPage();
 		await page.goto('http://localhost:1066/');
 		const extract = await parsePage(page);
+
+		const totals = {
+			'links'   : extract.elements.links.length,
+			'buttons' : extract.elements.buttons.length,
+			'images'  : extract.elements.images.length
+		};
+
+		console.log(`%s Found: ${totals.links} link(s), ${totals.buttons} button(s), ${totals.images} image(s).`, chalk.cyan.bold('INFO'));
 
 		const playgroundID = await getCache('playground_id');
 		const openedPlayground = await getCache('playground_open');
@@ -245,6 +253,8 @@ export async function puppet() {
 
 //		if (playground.new) {
 
+		console.log(`%s Sending ${Object.keys(totals).map((key)=> (totals[key])).reduce((acc, val)=> (acc + val))} component(s)…`, chalk.cyan.bold('INFO'));
+		console.log('::::', extract.elements);
 		response = await fetch(API_ENDPT_URL, {
 			method  : 'POST',
 			headers : {
@@ -259,13 +269,12 @@ export async function puppet() {
 
 		try {
 			response = await response.json();
+//			console.log('::::', response);
 
 		} catch (e) {
 			console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
 		}
 //		}
-
-
 
 //		await page.screenshot({path:'example.png'});
 //		const buttons = await page.$$eval('input[type="button"]', (btns)=> { return (btns.map((btn)=> btn.value)); });
@@ -274,11 +283,14 @@ export async function puppet() {
 //		console.log('buttons:', buttons);
 
 		await browser.close();
+		server.close();
 
-
-
-
-//		server.close();
+		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/${playground.id}`));
+		if (!openedPlayground) {
+			await writeCache('playground_open', true);
+			open(`http://playground.designengine.ai/${playground.id}`);
+//			open(`http://playground.designengine.ai/${55}`);
+		}
 	});
 }
 
@@ -308,25 +320,15 @@ const server = http.createServer((req, res) => {
 });
 
 
-const connection = mysql.createConnection({
-	host     : '138.197.216.56',
-	user     : 'designengine_usr',
-	password : 'f4zeHUga.age',
-	database : 'designengine'
-});
-connection.connect();
-
-
-
 async function extractElements(page) {
-	return ({
+	const elements = {
 		'links'   : await page.$$eval('a', (els)=> {
 			return (els.map((el)=> {
 				const elementStyles = (element)=> {
 					let styles = {};
 					const compStyle = getComputedStyle(element);
 					for (let i=0; i<compStyle.length; i++) {
-						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]);
+						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]).replace(/"/g, '\\"');
 					}
 
 					return (styles);
@@ -343,7 +345,7 @@ async function extractElements(page) {
 				const elementFont = ()=> {
 					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
 					return ({
-						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/"/g, '') : '',
+						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/\\"/g, '') : '',
 						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
 						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
 						line    : line
@@ -358,7 +360,7 @@ async function extractElements(page) {
 				};
 
 				return ({
-					html   : el.outerHTML.replace('"', '\"'),
+					html   : el.outerHTML.replace(/"/g, '\\"'),
 					styles : styles,
 					border : null,
 					color  : elementColor(),
@@ -375,7 +377,7 @@ async function extractElements(page) {
 					let styles = {};
 					const compStyle = getComputedStyle(element);
 					for (let i=0; i<compStyle.length; i++) {
-						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]);
+						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]).replace(/"/g, '\\"');
 					}
 
 					return (styles);
@@ -392,11 +394,11 @@ async function extractElements(page) {
 				const elementFont = ()=> {
 					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
 					return ({
-						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/"/g, '') : '',
+						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/\\"/g, '') : '',
 						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
 						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
 						line    : line
-					})
+					});
 				};
 
 				const elementSize = ()=> {
@@ -407,7 +409,7 @@ async function extractElements(page) {
 				};
 
 				return ({
-					html   : el.outerHTML.replace('"', '\"'),
+					html   : el.outerHTML.replace(/"/g, '\\"'),
 					styles : styles,
 					border : null,
 					color  : elementColor(),
@@ -424,7 +426,7 @@ async function extractElements(page) {
 					let styles = {};
 					const compStyle = getComputedStyle(element);
 					for (let i=0; i<compStyle.length; i++) {
-						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]);
+						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]).replace(/"/g, '\\"');
 					}
 
 					return (styles);
@@ -441,7 +443,7 @@ async function extractElements(page) {
 				const elementFont = ()=> {
 					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
 					return ({
-						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/"/g, '') : '',
+						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/\\"/g, '') : '',
 						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
 						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
 						line    : line
@@ -455,59 +457,70 @@ async function extractElements(page) {
 					});
 				};
 
-				const imgSrcData = (url)=> {
-					return (new Promise((resolve, reject)=> {
-						let xhr = new XMLHttpRequest();
-						xhr.open('GET', url);
-						xhr.onload = ()=> {
-							if (this.status >= 200 && this.status < 300) {
-								const mediaType = xhr.getResponseHeader('content-type');
-								const bytes = new Uint8Array(xhr.response);
-								const binary = [].map.call(bytes, (byte)=> (String.fromCharCode(byte))).join('');
-								const base64 = [
-									'data:',
-									(mediaType) ? `${mediaType};` : '',
-									'base64,',
-									btoa(binary)
-								].join('');
-
-								resolve(base64);
-
-								//resolve(xhr.response);
-
-							} else {
-								reject({
-									status     : this.status,
-									statusText : xhr.statusText
-								});
-							}
-						};
-
-						xhr.onerror = ()=> {
-							reject({
-								status       : this.status,
-								statusText   : xhr.statusText
-							});
-						};
-
-						xhr.send();
-					}));
-				};
-
-				const imgData = imgSrcData(el.src);
 				return ({
-					html   : el.outerHTML.replace('"', '\"'),
+					html   : el.outerHTML.replace(/"/g, '\\"'),
 					styles : styles,
 					border : null,
 					color  : elementColor(),
 					font   : elementFont(),
 					size   : elementSize(),
 					text   : el.innerText,
-					data   : imgData
+					data   : el.src
 				});
 			}));
 		}),
-	});
+	};
+
+	const imgSrcData = async(url)=> {
+		return (new Promise((resolve, reject)=> {
+			let xhr = new XMLHttpRequest();
+			xhr.open('GET', url);
+			xhr.onload = ()=> {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					const mediaType = xhr.getResponseHeader('content-type');
+					const bytes = new Uint8Array(xhr.response);
+					const binary = [].map.call(bytes, (byte)=> (String.fromCharCode(byte))).join('');
+					const base64 = [
+						'data:',
+						(mediaType) ? `${mediaType};` : '',
+						'base64,',
+//						btoa(binary)
+						Buffer.from(binary, 'base64').toString()
+					].join('');
+
+					resolve(base64);
+
+					//resolve(xhr.response);
+
+				} else {
+					reject({
+						status     : xhr.status,
+						statusText : xhr.statusText
+					});
+				}
+			};
+
+			xhr.onerror = ()=> {
+				reject({
+					status       : xhr.status,
+					statusText   : xhr.statusText
+				});
+			};
+
+			xhr.send();
+		}));
+	};
+
+
+	return (elements);
+
+//	return ({ ...elements,
+//		images : elements.images.map(async(el, i)=> {
+//			return ({ ...el,
+//				data : await imgSrcData(el.data)
+//			});
+//		})
+//	});
 }
 
 export function hexRGBA(color) {
