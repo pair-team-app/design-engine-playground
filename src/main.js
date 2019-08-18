@@ -254,7 +254,7 @@ export async function puppet() {
 //		if (playground.new) {
 
 		console.log(`%s Sending ${Object.keys(totals).map((key)=> (totals[key])).reduce((acc, val)=> (acc + val))} component(s)…`, chalk.cyan.bold('INFO'));
-		console.log('::::', extract.elements);
+//		console.log('::::', extract.elements);
 		response = await fetch(API_ENDPT_URL, {
 			method  : 'POST',
 			headers : {
