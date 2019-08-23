@@ -8,6 +8,11 @@ $ npm install design-engine-playground
 $ npm link design-engine-playground
 ```
 
+Add postbuild script to your `package.json`:
+```js
+"postbuild": "design-engine-playground"
+```
+
 ### Usage
 
 > Design engine playground will automatically start after `npm run build` completes successfully.
