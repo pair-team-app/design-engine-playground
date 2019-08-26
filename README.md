@@ -1,6 +1,6 @@
 ## design-engine-playground
 
-A CLI for syncing components to design systems.
+A CLI for syncing code components to design components in Adobe XD, Figma, & Sketch. Design Engine mirrors code components with design components for teams to consume & re-use keeping design systems intact.
 
 ### Install
 ```js
