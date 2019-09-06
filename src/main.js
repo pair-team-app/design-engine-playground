@@ -371,7 +371,8 @@ async function extractElements(page) {
 			}));
 		}),
 
-		'buttons' : await page.$$eval('input[type="button"]', (els)=> {
+//		'buttons' : await page.$$eval('input[type="button"]', (els)=> {
+		'buttons' : await page.$$eval('button', (els)=> {
 			return (els.map((el)=> {
 				const elementStyles = (element)=> {
 					let styles = {};
