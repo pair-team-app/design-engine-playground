@@ -229,8 +229,8 @@ export async function puppet() {
 			'images'  : extract.elements.images.length
 		};
 
-//		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.yellow.bold(totals.links), chalk.yellow.bold(totals.buttons), chalk.yellow.bold(totals.images));
-		console.log('%s Found: %s image, %s buttons, %s table.', chalk.cyan.bold('INFO'), chalk.yellow.bold('1'), chalk.yellow.bold('8'), chalk.yellow.bold('1'));
+		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.yellow.bold(totals.links), chalk.yellow.bold(totals.buttons), chalk.yellow.bold(totals.images));
+//		console.log('%s Found: %s image, %s buttons, %s table.', chalk.cyan.bold('INFO'), chalk.yellow.bold('1'), chalk.yellow.bold('8'), chalk.yellow.bold('1'));
 
 		const playgroundID = await getCache('playground_id');
 		const openedPlayground = await getCache('playground_open');
@@ -254,8 +254,8 @@ export async function puppet() {
 
 //		if (playground.new) {
 
-//		console.log('%s Sending %s component(s)…', chalk.cyan.bold('INFO'), chalk.yellow.bold(Object.keys(totals).map((key)=> (totals[key])).reduce((acc, val)=> (acc + val))));
-		console.log('%s Sending %s components…', chalk.cyan.bold('INFO'), chalk.yellow.bold('10'));
+		console.log('%s Sending %s component(s)…', chalk.cyan.bold('INFO'), chalk.yellow.bold(Object.keys(totals).map((key)=> (totals[key])).reduce((acc, val)=> (acc + val))));
+//		console.log('%s Sending %s components…', chalk.cyan.bold('INFO'), chalk.yellow.bold('10'));
 //		console.log('::::', extract.elements);
 		response = await fetch(API_ENDPT_URL, {
 			method  : 'POST',
