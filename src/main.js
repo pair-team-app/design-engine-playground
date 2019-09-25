@@ -1,7 +1,5 @@
 
-import axios from 'axios';
 import chalk from 'chalk';
-import FormData from 'form-data';
 import fs from 'fs';
 import http from 'http';
 import open from 'open';
@@ -11,7 +9,6 @@ import path from 'path';
 import projectName from 'project-name';
 import { promisify } from 'util';
 import { XMLHttpRequest } from 'xmlhttprequest';
-import zipdir from 'zip-dir';
 
 const access = promisify(fs.access);
 
@@ -70,78 +67,6 @@ const writeCache = async(key, val)=> {
 };
 
 
-async function createZip(srcPath, playgroundID, callback) {
-//	console.log('createZip', srcPath, playgroundID);
-
-	const destPath = path.join(cacheDir(), `build_${playgroundID}.zip`);
-	zipdir(srcPath, {
-		saveTo : destPath
-
-	}, (err, buffer)=> {
-		return (callback(destPath));
-	});
-}
-
-async function sendZip(filepath, playgroundID) {
-//	console.log('sendZip', filepath, playgroundID);
-
-	let formData = new FormData();
-	formData.append('playground_id', playgroundID);
-	formData.append('file', fs.readFileSync(filepath), { filepath,
-		contentType : 'application/zip'
-	});
-
-//	formData.append('file', fs.readFileSync(filepath));
-	let response = await axios.post('https://api.designengine.ai/upload.php?dir=/builds', formData, {
-//	let response = await axios.post('http://cdn.designengine.ai/upload.php?dir=/builds', formData, {
-//	let response = await axios.post('http://terminal.designengine.ai/upload?playground_id=9', formData, {
-		headers : {
-			...formData.getHeaders(),
-			//			'Accept'       : 'application/json',
-//			'Content-Type' : 'multipart/form-data',
-//			'Content-Type' : 'application/octet-stream',
-//			'Content-Type': 'application/x-www-form-urlencoded',
-//			'Content-Length': fs.statSync(filepath).size
-		}
-	});
-
-	try {
-		response = response.data;
-
-	} catch (e) {
-		console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
-	}
-
-//	console.log('ZIP -->>', response);
-	return (response);
-
-
-	/*
-//	let response = await fetch(API_ENDPT_URL, {
-	let response = await fetch('http://cdn.designengine.ai/upload.php?dir=/tmp', {
-		method : 'POST',
-		headers : {
-			'Accept' : 'application/json',
-			'Content-Type' : 'multipart/form-data'
-//			'Content-Type' : 'application/octet-stream'
-		},
-//		body : fs.readFileSync(filepath)
-		body : formData
-	});
-
-	try {
-		console.log('::::::::::', response);
-		response = await response.json();
-
-	} catch (e) {
-		console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
-	}
-	*/
-
-//	return (null);
-}
-
-
 async function queryPlayground(playgroundID) {
 	let response = await fetch(API_ENDPT_URL, {
 		method  : 'POST',
@@ -166,62 +91,161 @@ async function queryPlayground(playgroundID) {
 	return (response);
 }
 
-export async function syncPlayground(options) {
-	try {
-		await access(path.join(process.cwd(), 'build'), fs.constants.R_OK);
-
-	} catch (e) {
-		console.log('%s Couldn\'t find build dir! %s', chalk.red.bold('ERROR'), e);
-		process.exit(1);
-	}
-
-	const playgroundID = await getCache('playground_id');
-	const openedPlayground = await getCache('playground_open');
-
-	console.log('%s Queueing playground…', chalk.cyan.bold('INFO'));
-	let response = null;
-	try {
-		response = await queryPlayground(playgroundID);
-
-	} catch (e) {
-		console.log('%s Error querying server! %s', chalk.red.bold('ERROR'), e);
-		process.exit(1);
-	}
-
-	const playground = { ...response.playground,
-		id  : response.playground.id << 0,
-		new : response.playground.is_new
-	};
-
-	await writeCache('playground_id', playground.id);
-
-
-	console.log('%s Compressing files…', chalk.cyan.bold('INFO'));
-	await createZip(path.join(process.cwd(), 'build'), playground.id, async(zipPath)=> {
-//		console.log('::::', 'ZIPPED');
-
-		console.log('%s Sending zip…', chalk.cyan.bold('INFO'));
-		await sendZip(zipPath, playground.id);
-
-		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/${playground.id}`));
-		if (!openedPlayground) {
-			await writeCache('playground_open', true);
-			open(`http://playground.designengine.ai/${playground.id}`);
-//			open(`http://playground.designengine.ai/${55}`);
-		}
-	});
-
-	return (true);
-}
-
 export async function puppet() {
 	server.listen(PORT, HOSTNAME, async()=> {
 //		console.log(`Server running at http://${HOSTNAME}:${PORT}/`);
 
+		try {
+			await access(path.join(process.cwd(), 'build'), fs.constants.R_OK);
+
+		} catch (e) {
+			console.log('%s Couldn\'t find build dir! %s', chalk.red.bold('ERROR'), e);
+			process.exit(1);
+		}
+
+
 		const browser = await puppeteer.launch();
 		const page = await browser.newPage();
-		await page.goto('http://localhost:1066/');
+		await page.goto(`http://localhost:${PORT}/`);
+
+		await page.evaluate(()=> {
+			window.elementStyles = (element)=> {
+				let styles = {};
+				const compStyle = getComputedStyle(element);
+				for (let i=0; i<compStyle.length; i++) {
+					styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]).replace(/"/g, '\\"');
+				}
+
+				return (styles);
+			};
+
+			window.elementColor = (styles)=> {
+				return ({
+					background : (Object.keys(styles).includes('background-color')) ? styles['background-color'] : rgbaObject('rgba(0, 0, 0, 1)'),
+					foreground : (Object.keys(styles).includes('color')) ? styles['color'] : rgbaObject('rgba(0, 0, 0, 1)')
+				});
+			};
+
+			window.elementFont = (styles)=> {
+				const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
+				return ({
+					family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/\\"/g, '') : '',
+					size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
+					kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
+					line    : line
+				})
+			};
+
+			window.elementSize = (styles)=> {
+				return ({
+					width  : styles.width.replace('px', '') << 0,
+					height : styles.height.replace('px', '') << 0
+				});
+			};
+
+			window.imageData = (el, size)=> {
+				const canvas = document.createElement('canvas');
+				canvas.width = size.width;
+				canvas.height = size.height;
+
+				const ctx = canvas.getContext('2d');
+				ctx.drawImage(el, 0, 0, size.width, size.height);
+
+				return (canvas.toDataURL('image/png'));
+			};
+
+//			window.imgSrcData = (url, callback)=> {
+			window.imgSrcData = async(url)=> {
+//				const img = new Image;
+//				img.setAttribute('crossOrigin', 'anonymous');
+//				img.src = url;
+//
+//				const canvas = document.createElement('canvas');
+//				canvas.width = img.width;
+//				canvas.height = img.height;
+//
+//				const ctx = canvas.getContext('2d');
+//				ctx.drawImage(img, 0, 0);
+//
+//				return (canvas.toDataURL('image/png'));
+
+				/*const xhr = new XMLHttpRequest();
+				xhr.onloadend = ()=> {
+					const reader = new FileReader();
+					reader.onload = ()=> {
+						callback(reader.result);
+					};
+					reader.onerror = (error)=> {
+						callback(error);
+					};
+					reader.readAsDataURL(xhr.response);
+				};
+
+				xhr.onerror = (error)=> {
+					callback(error);
+				};
+
+				xhr.open('GET', url);
+				xhr.responseType = 'blob';
+				xhr.send();*/
+
+
+				return (new Promise((resolve, reject)=> {
+					const xhr = new XMLHttpRequest();
+					xhr.onload = ()=> {
+						const reader = new FileReader();
+						reader.onload = ()=> {
+							resolve(reader.result);
+						};
+						reader.onerror = (error)=> {
+							reject(error);
+						};
+						reader.readAsDataURL(xhr.response);
+
+
+//						if (xhr.status >= 200 && xhr.status < 300) {
+//							const mediaType = xhr.getResponseHeader('content-type');
+//							const bytes = new Uint8Array(xhr.response);
+//							const binary = [].map.call(bytes, (byte)=> (String.fromCharCode(byte))).join('');
+//							const base64 = [
+//								'data:',
+//								(mediaType) ? `${mediaType};` : '',
+//								'base64,',
+////						btoa(binary)
+//								Buffer.from(binary, 'base64').toString()
+//							].join('');
+//
+//							resolve(base64);
+//
+//							//resolve(xhr.response);
+//
+//						} else {
+//							reject({
+//								status     : xhr.status,
+//								statusText : xhr.statusText
+//							});
+//						}
+					};
+
+					xhr.onerror = ()=> {
+						reject({
+							status       : xhr.status,
+							statusText   : xhr.statusText
+						});
+					};
+
+					xhr.open('GET', url);
+					xhr.responseType = 'blob';
+					xhr.send();
+				}));
+			};
+		});
+
+		await page.waitForSelector('[class="app"]');
+
 		const extract = await parsePage(page);
+//		console.log('::::', extract.elements);
+//		console.log('IMAGES -->', extract.elements.images);
 
 		const totals = {
 			'links'   : extract.elements.links.length,
@@ -230,7 +254,6 @@ export async function puppet() {
 		};
 
 		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.yellow.bold(totals.links), chalk.yellow.bold(totals.buttons), chalk.yellow.bold(totals.images));
-//		console.log('%s Found: %s image, %s buttons, %s table.', chalk.cyan.bold('INFO'), chalk.yellow.bold('1'), chalk.yellow.bold('8'), chalk.yellow.bold('1'));
 
 		const playgroundID = await getCache('playground_id');
 		const openedPlayground = await getCache('playground_open');
@@ -252,31 +275,29 @@ export async function puppet() {
 
 		await writeCache('playground_id', playground.id);
 
-//		if (playground.new) {
-
 		console.log('%s Sending %s component(s)…', chalk.cyan.bold('INFO'), chalk.yellow.bold(Object.keys(totals).map((key)=> (totals[key])).reduce((acc, val)=> (acc + val))));
-//		console.log('%s Sending %s components…', chalk.cyan.bold('INFO'), chalk.yellow.bold('10'));
-//		console.log('::::', extract.elements);
-		response = await fetch(API_ENDPT_URL, {
-			method  : 'POST',
-			headers : {
-				'Content-Type' : 'application/json'
-			},
-			body    : JSON.stringify({
-				action        : 'ADD_COMPONENTS',
-				playground_id : playgroundID,
-				elements      : extract.elements
-			})
-		});
 
-		try {
-			response = await response.json();
+		if (playground.new) {
+			response = await fetch(API_ENDPT_URL, {
+				method  : 'POST',
+				headers : {
+					'Content-Type' : 'application/json'
+				},
+				body    : JSON.stringify({
+					action        : 'ADD_COMPONENTS',
+					playground_id : playgroundID,
+					elements      : extract.elements
+				})
+			});
+
+			try {
+				response = await response.json();
 //			console.log('::::', response);
 
-		} catch (e) {
-			console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
+			} catch (e) {
+				console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
+			}
 		}
-//		}
 
 //		await page.screenshot({path:'example.png'});
 //		const buttons = await page.$$eval('input[type="button"]', (btns)=> { return (btns.map((btn)=> btn.value)); });
@@ -322,205 +343,70 @@ const server = http.createServer((req, res) => {
 });
 
 
+
 async function extractElements(page) {
 	const elements = {
-		'links'   : await page.$$eval('a', (els)=> {
-			return (els.map((el)=> {
-				const elementStyles = (element)=> {
-					let styles = {};
-					const compStyle = getComputedStyle(element);
-					for (let i=0; i<compStyle.length; i++) {
-						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]).replace(/"/g, '\\"');
-					}
+		'links'   : await page.$$eval('a', (els)=> (els.map((el)=> {
+			const styles = elementStyles(el);
+			return ({
+				html   : el.outerHTML.replace(/"/g, '\\"'),
+				styles : styles,
+				border : null,
+				color  : elementColor(),
+				font   : elementFont(),
+				size   : elementSize(),
+				text   : el.innerText
+			});
+		}))),
 
-					return (styles);
-				};
+//		'buttons' : await page.evaluate(()=> (
+//			[...document.querySelectorAll('button, input[type="button"], input[type="submit"]')].map((el)=> {
+//				const styles = window.elStyles(el);
+//
+//				return ({
+//					html   : el.outerHTML.replace(/"/g, '\\"'),
+//					styles : styles
+//				});
+//			})
+//		)),
 
-				const styles = elementStyles(el);
-				const elementColor = ()=> {
-					return ({
-						background : (Object.keys(styles).includes('background-color')) ? styles['background-color'] : rgbaObject('rgba(0, 0, 0, 1)'),
-						foreground : (Object.keys(styles).includes('color')) ? styles['color'] : rgbaObject('rgba(0, 0, 0, 1)')
-					});
-				};
+		'buttons' : await page.$$eval('button, input[type="button"], input[type="submit"]', (els)=> (els.map((el)=> {
+			const styles = window.elementStyles(el);
 
-				const elementFont = ()=> {
-					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
-					return ({
-						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/\\"/g, '') : '',
-						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
-						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
-						line    : line
-					})
-				};
+			return ({
+				html   : el.outerHTML.replace(/"/g, '\\"'),
+				styles : styles,
+				border : null,
+				color  : window.elementColor(styles),
+				font   : window.elementFont(styles),
+				size   : window.elementSize(styles),
+				text   : el.value
+			});
+		}))),
 
-				const elementSize = ()=> {
-					return ({
-						width  : styles.width.replace('px', '') << 0,
-						height : styles.height.replace('px', '') << 0
-					});
-				};
+		'images'  : await page.$$eval('img', (els)=> (els.map((el)=> {
+			const styles = window.elementStyles(el);
 
-				return ({
-					html   : el.outerHTML.replace(/"/g, '\\"'),
-					styles : styles,
-					border : null,
-					color  : elementColor(),
-					font   : elementFont(),
-					size   : elementSize(),
-					text   : el.innerText
-				});
-			}));
-		}),
-
-//		'buttons' : await page.$$eval('input[type="button"]', (els)=> {
-		'buttons' : await page.$$eval('button', (els)=> {
-			return (els.map((el)=> {
-				const elementStyles = (element)=> {
-					let styles = {};
-					const compStyle = getComputedStyle(element);
-					for (let i=0; i<compStyle.length; i++) {
-						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]).replace(/"/g, '\\"');
-					}
-
-					return (styles);
-				};
-
-				const styles = elementStyles(el);
-				const elementColor = ()=> {
-					return ({
-						background : (Object.keys(styles).includes('background-color')) ? styles['background-color'] : rgbaObject('rgba(0, 0, 0, 1)'),
-						foreground : (Object.keys(styles).includes('color')) ? styles['color'] : rgbaObject('rgba(0, 0, 0, 1)')
-					});
-				};
-
-				const elementFont = ()=> {
-					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
-					return ({
-						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/\\"/g, '') : '',
-						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
-						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
-						line    : line
-					});
-				};
-
-				const elementSize = ()=> {
-					return ({
-						width  : styles.width.replace('px', '') << 0,
-						height : styles.height.replace('px', '') << 0
-					});
-				};
-
-				return ({
-					html   : el.outerHTML.replace(/"/g, '\\"'),
-					styles : styles,
-					border : null,
-					color  : elementColor(),
-					font   : elementFont(),
-					size   : elementSize(),
-					text   : el.value
-				});
-			}));
-		}),
-
-		'images'  : await page.$$eval('img', (els)=> {
-			return (els.map((el)=> {
-				const elementStyles = (element)=> {
-					let styles = {};
-					const compStyle = getComputedStyle(element);
-					for (let i=0; i<compStyle.length; i++) {
-						styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]).replace(/"/g, '\\"');
-					}
-
-					return (styles);
-				};
-
-				const styles = elementStyles(el);
-				const elementColor = ()=> {
-					return ({
-						background : (Object.keys(styles).includes('background-color')) ? styles['background-color'] : rgbaObject('rgba(0, 0, 0, 1)'),
-						foreground : (Object.keys(styles).includes('color')) ? styles['color'] : rgbaObject('rgba(0, 0, 0, 1)')
-					});
-				};
-
-				const elementFont = ()=> {
-					const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
-					return ({
-						family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/\\"/g, '') : '',
-						size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
-						kerning : (Object.keys(styles).includes('letter-spacing')) ? parseFloat(styles['letter-spacing']) : 0,
-						line    : line
-					})
-				};
-
-				const elementSize = ()=> {
-					return ({
-						width  : styles.width.replace('px', '') << 0,
-						height : styles.height.replace('px', '') << 0
-					});
-				};
-
-				return ({
-					html   : el.outerHTML.replace(/"/g, '\\"'),
-					styles : styles,
-					border : null,
-					color  : elementColor(),
-					font   : elementFont(),
-					size   : elementSize(),
-					text   : el.innerText,
-					data   : el.src
-				});
-			}));
-		}),
+			return ({
+				html   : el.outerHTML.replace(/"/g, '\\"'),
+				styles : styles,
+				border : null,
+				color  : elementColor(styles),
+				font   : elementFont(styles),
+				size   : elementSize(styles),
+				text   : el.alt,
+				data   : window.imageData(el, elementSize(styles)),
+				url    : el.src
+			});
+		})))
 	};
-
-	const imgSrcData = async(url)=> {
-		return (new Promise((resolve, reject)=> {
-			let xhr = new XMLHttpRequest();
-			xhr.open('GET', url);
-			xhr.onload = ()=> {
-				if (xhr.status >= 200 && xhr.status < 300) {
-					const mediaType = xhr.getResponseHeader('content-type');
-					const bytes = new Uint8Array(xhr.response);
-					const binary = [].map.call(bytes, (byte)=> (String.fromCharCode(byte))).join('');
-					const base64 = [
-						'data:',
-						(mediaType) ? `${mediaType};` : '',
-						'base64,',
-//						btoa(binary)
-						Buffer.from(binary, 'base64').toString()
-					].join('');
-
-					resolve(base64);
-
-					//resolve(xhr.response);
-
-				} else {
-					reject({
-						status     : xhr.status,
-						statusText : xhr.statusText
-					});
-				}
-			};
-
-			xhr.onerror = ()=> {
-				reject({
-					status       : xhr.status,
-					statusText   : xhr.statusText
-				});
-			};
-
-			xhr.send();
-		}));
-	};
-
 
 	return (elements);
 
 //	return ({ ...elements,
 //		images : elements.images.map(async(el, i)=> {
 //			return ({ ...el,
-//				data : await imgSrcData(el.data)
+//				data : await imgSrcData(el.url)
 //			});
 //		})
 //	});
