@@ -8,7 +8,6 @@ import fetch from 'node-fetch';
 import path from 'path';
 import projectName from 'project-name';
 import { promisify } from 'util';
-import { XMLHttpRequest } from 'xmlhttprequest';
 
 const access = promisify(fs.access);
 
@@ -153,92 +152,6 @@ export async function puppet() {
 
 				return (canvas.toDataURL('image/png'));
 			};
-
-//			window.imgSrcData = (url, callback)=> {
-			window.imgSrcData = async(url)=> {
-//				const img = new Image;
-//				img.setAttribute('crossOrigin', 'anonymous');
-//				img.src = url;
-//
-//				const canvas = document.createElement('canvas');
-//				canvas.width = img.width;
-//				canvas.height = img.height;
-//
-//				const ctx = canvas.getContext('2d');
-//				ctx.drawImage(img, 0, 0);
-//
-//				return (canvas.toDataURL('image/png'));
-
-				/*const xhr = new XMLHttpRequest();
-				xhr.onloadend = ()=> {
-					const reader = new FileReader();
-					reader.onload = ()=> {
-						callback(reader.result);
-					};
-					reader.onerror = (error)=> {
-						callback(error);
-					};
-					reader.readAsDataURL(xhr.response);
-				};
-
-				xhr.onerror = (error)=> {
-					callback(error);
-				};
-
-				xhr.open('GET', url);
-				xhr.responseType = 'blob';
-				xhr.send();*/
-
-
-				return (new Promise((resolve, reject)=> {
-					const xhr = new XMLHttpRequest();
-					xhr.onload = ()=> {
-						const reader = new FileReader();
-						reader.onload = ()=> {
-							resolve(reader.result);
-						};
-						reader.onerror = (error)=> {
-							reject(error);
-						};
-						reader.readAsDataURL(xhr.response);
-
-
-//						if (xhr.status >= 200 && xhr.status < 300) {
-//							const mediaType = xhr.getResponseHeader('content-type');
-//							const bytes = new Uint8Array(xhr.response);
-//							const binary = [].map.call(bytes, (byte)=> (String.fromCharCode(byte))).join('');
-//							const base64 = [
-//								'data:',
-//								(mediaType) ? `${mediaType};` : '',
-//								'base64,',
-////						btoa(binary)
-//								Buffer.from(binary, 'base64').toString()
-//							].join('');
-//
-//							resolve(base64);
-//
-//							//resolve(xhr.response);
-//
-//						} else {
-//							reject({
-//								status     : xhr.status,
-//								statusText : xhr.statusText
-//							});
-//						}
-					};
-
-					xhr.onerror = ()=> {
-						reject({
-							status       : xhr.status,
-							statusText   : xhr.statusText
-						});
-					};
-
-					xhr.open('GET', url);
-					xhr.responseType = 'blob';
-					xhr.send();
-				}));
-			};
 		});
 
 		await page.waitForSelector('[class="app"]');
@@ -348,6 +261,7 @@ async function extractElements(page) {
 	const elements = {
 		'links'   : await page.$$eval('a', (els)=> (els.map((el)=> {
 			const styles = elementStyles(el);
+
 			return ({
 				html   : el.outerHTML.replace(/"/g, '\\"'),
 				styles : styles,
@@ -402,14 +316,6 @@ async function extractElements(page) {
 	};
 
 	return (elements);
-
-//	return ({ ...elements,
-//		images : elements.images.map(async(el, i)=> {
-//			return ({ ...el,
-//				data : await imgSrcData(el.url)
-//			});
-//		})
-//	});
 }
 
 export function hexRGBA(color) {
