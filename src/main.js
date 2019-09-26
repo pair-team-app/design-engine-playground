@@ -27,6 +27,9 @@ const MIME_TYPES = {
 };
 
 
+
+
+
 const cacheDir = ()=> {
 	const plat = process.platform;
 	const appName = 'design-engine-playground';
@@ -108,14 +111,300 @@ export async function puppet() {
 		await page.goto(`http://localhost:${PORT}/`);
 
 		await page.evaluate(()=> {
-			window.elementStyles = (element)=> {
-				let styles = {};
-				const compStyle = getComputedStyle(element);
-				for (let i=0; i<compStyle.length; i++) {
-					styles[compStyle[i]] = compStyle.getPropertyValue(compStyle[i]).replace(/"/g, '\\"');
+			const CSS_AUTO_STYLES = [
+				'align-self',
+				'alignment-baseline',
+				'bottom',
+				'break',
+				'buffered-rendering',
+				'clip',
+				'color-rendering',
+				'column',
+				'cursor',
+				'dominant-baseline',
+				'font-kerning',
+				'image-rendering',
+				'isolation',
+				'offset',
+				'page-break',
+				'shape-rendering',
+				'text-underline-position',
+				'touch-action',
+				'user-select',
+				'-webkit-line-break',
+				'-webkit-min-logical',
+				'-webkit-user-drag',
+				'-webkit-user-select',
+				'will-change'
+			];
+
+			const CSS_CONDENSE_STYLES = [
+				'animation',
+				'background-position',
+				'background-repeat',
+				'background',
+				'border-radius',
+				'border',
+				'column-rule',
+				'fill',
+				'font-variant',
+				'grid-auto',
+				'grid-column',
+				'grid-row',
+				'grid-template',
+				'list-style',
+				'margin',
+				'marker',
+				'offset',
+				'outline',
+				'overflow',
+				'overscroll-behavior',
+				'padding',
+				'scroll-margin-block',
+				'scroll-margin-inline',
+				'scroll-margin',
+				'scroll-padding-block',
+				'scroll-padding-inline',
+				'scroll-padding',
+				'scroll-snap',
+				'stroke',
+				'text-decoration',
+				'transition',
+				'-webkit-animation',
+				'-webkit-border-after',
+				'-webkit-border-before',
+				'-webkit-border-end',
+				'-webkit-border-start',
+				'-webkit-border',
+				'-webkit-column-rule',
+				'-webkit-margin-after',
+				'-webkit-margin-after',
+				'-webkit-margin-before',
+				'-webkit-mask-box-image',
+				'-webkit-mask-position',
+				'-webkit-mask-repeat',
+				'-webkit-perspective-origin',
+				'-webkit-text-emphasis',
+				'-webkit-text-stroke',
+				'-webkit-transform',
+				'-webkit-transition'
+			];
+
+			const CSS_NONE_STYLES = [
+				'animation',
+				'backdrop-filter',
+				'background',
+				'border',
+				'box-shadow',
+				'clear',
+				'clip-path',
+				'column-rule',
+				'column-span',
+				'contain',
+				'counter-increment',
+				'counter-reset',
+				'filter',
+				'float',
+				'grid',
+				'grid-template',
+				'offset',
+				'outline',
+				'perspective',
+				'pointer-events',
+				'stroke',
+				'text-combine-upright',
+				'text-decoration',
+				'text-shadow',
+				'text-transform',
+				'transform',
+				'-webkit-animation',
+				'-webkit-border',
+				'webkit-box',
+				'-webkit-column-rule',
+				'-webkit-column-span',
+				'-webkit-filter',
+				'-webkit-highlight',
+				'-webkit-line-clamp',
+				'-webkit-max-logical',
+				'-webkit-perspective',
+				'-webkit-text-combine',
+				'-webkit-text-decorations-in-effect',
+				'-webkit-text-security',
+				'-webkit-transform',
+				'-webkit-perspective'
+			];
+
+			const CSS_NORMAL_STYLES = [
+				'column-gap',
+				'content',
+				'font-style',
+				'font-variant',
+				'font-variation-setting',
+				'letter-spacing',
+				'mix-blend-mode',
+				'speak',
+				'unicode-bidi',
+				'-webkit-animation',
+				'-webkit-font-feature-settings',
+				'white-space',
+				'word-break',
+				'word-wrap'
+			];
+
+			const CSS_ZERO_STYLES = [
+				'baseline-shift',
+				'padding',
+				'text-indent',
+				'-webkit-padding',
+				'-webkit-shape',
+				'word-spacing'
+			];
+
+
+			window.rgbaObject = (color)=> {
+				return ({
+					r : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.red) << 0,
+					g : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.green) << 0,
+					b : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.blue) << 0,
+					a : (color.includes('rgba')) ? parseFloat(color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+), (?<alpha>\d(\.\d+)?)\)$/).groups.alpha) * 255 : 255
+				});
+			};
+
+			window.purgeObjProps = (obj, patt)=> {
+				let pruneObj = { ...obj };
+
+//				for (let key in obj) {
+//					if (obj.hasOwnProperty(key) && patt.test(key)) {
+//						delete pruneObj[key];
+//					}
+//				}
+
+				Object.keys(pruneObj).filter((key)=> (pruneObj.hasOwnProperty(key) && patt.test(key))).forEach((key)=> {
+					delete (pruneObj[key]);
+				});
+
+				return (pruneObj);
+			};
+
+			window.purgeStyles = (styles, patt, force=false)=> {
+				const regex = (force) ? new RegExp(`^${patt}`, 'i') : new RegExp(`^${patt}-`, 'i');
+				const purgeKeys = Object.keys(styles).filter((key)=> (regex.test(key)));
+
+				if (force && CSS_AUTO_STYLES.find((key, i)=> (key === patt && styles[key] === 'auto'))) {
+					delete (styles[patt]);
 				}
 
+				if (force && CSS_NONE_STYLES.find((key, i)=> (key === patt && styles[key] === 'none'))) {
+					delete (styles[patt]);
+				}
+
+				if (force && CSS_NORMAL_STYLES.find((key, i)=> (key === patt && styles[key] === 'normal'))) {
+					delete (styles[patt]);
+				}
+
+				if (force && CSS_ZERO_STYLES.find((key, i)=> (key === patt && styles[key].replace(/[^\d]/g) === 0))) {
+					delete (styles[patt]);
+				}
+
+
+				let suffixAttribs = {};
+				purgeKeys.forEach((key)=> {
+					suffixAttribs[key.replace(regex, '')] = null;
+				});
+
+				purgeKeys.forEach((key)=> {
+					const purgeProp = key.replace(regex, '');
+					if (suffixAttribs.hasOwnProperty(purgeProp) || force) {
+						suffixAttribs[purgeProp] = styles[key];
+					}
+				});
+
+				return ((Object.keys(styles).filter((key)=> regex.test(key))) ? purgeObjProps(styles, regex) : styles);
+			};
+
+			window.borderProcess = (styles)=> {
+				const keys = Object.keys(styles).filter((key) => /^border-/i.test(key));
+				let pos = {
+					bottom : null,
+					top    : null,
+					left   : null,
+					right  : null
+				};
+
+				keys.forEach((key)=> {
+					const suffix = key.replace(/^border-/, '');
+					if (pos.hasOwnProperty(suffix)) {
+						pos[suffix] = styles[key];
+					}
+				});
+
+				return ((Object.keys(styles).filter((key) => /^border-/i.test(key))) ? purgeObjProps(styles, /^border-.+/) : styles);
+			};
+
+
+			window.elementStyles = (element)=> {
+				let styles = {};
+				const compStyles = getComputedStyle(element);
+
+				Object.keys(compStyles).filter((key)=> (isNaN(parseInt(key, 10)))).forEach((key, i)=> {
+					styles[key.replace(/([A-Z]|^moz|^webkit)/g, (c)=> (`-${c.toLowerCase()}`))] = compStyles[key].replace(/"/g, '\\"');
+				});
+
+				CSS_CONDENSE_STYLES.forEach((key)=> {
+					styles = purgeStyles(styles, key);
+				});
+
+				CSS_AUTO_STYLES.forEach((key)=> {
+					styles = purgeStyles(styles, key, true);
+				});
+
+				CSS_NONE_STYLES.forEach((key)=> {
+					styles = purgeStyles(styles, key, true);
+				});
+
+				CSS_NORMAL_STYLES.forEach((key)=> {
+					styles = purgeStyles(styles, key, true);
+				});
+
+				CSS_ZERO_STYLES.forEach((key)=> {
+					styles = purgeStyles(styles, key, true);
+				});
+
+				if (styles['zoom'] === 1) {
+					styles = purgeStyles(styles, 'zoom', true);
+				}
+
+
+
+//				for (let i=0; i<compStyles.length; i++) {
+//					styles[compStyles[i]] = compStyles.getPropertyValue(compStyles[i]).replace(/"/g, '\\"');
+////					styles[compStyles.item(i)] = compStyles.getPropertyValue(compStyles.item(i)).replace(/"/g, '\\"');
+//				}
+
 				return (styles);
+			};
+
+			window.elementBounds = (el, styles)=> {
+				const origin = {
+					x : el.offset.left,
+					y : el.offset.top
+				};
+
+				const margin = {
+					top : (el.getBoundingClientRect().top - el.offsetTop)
+				};
+
+				const size = {
+					width  : styles.width.replace('px', '') << 0,
+					height : styles.height.replace('px', '') << 0
+				};
+
+				const center = {
+					x : origin.x + ((size.width * 0.5) << 0),
+					y : origin.y + ((size.height * 0.5) << 0)
+				};
+
+				return ({ origin, size, center });
 			};
 
 			window.elementColor = (styles)=> {
@@ -126,7 +415,7 @@ export async function puppet() {
 			};
 
 			window.elementFont = (styles)=> {
-				const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace('px', ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
+				const line = (Object.keys(styles).includes('line-height') && !isNaN(styles['line-height'].replace(/[^\d]/g, ''))) ? styles['line-height'].replace('px', '') << 0 : (styles['font-size'].replace('px', '') << 0) * 1.2;
 				return ({
 					family  : (Object.keys(styles).includes('font-family')) ? styles['font-family'].replace(/\\"/g, '') : '',
 					size    : (Object.keys(styles).includes('font-size')) ? styles['font-size'].replace('px', '') << 0 : 0,
@@ -135,12 +424,7 @@ export async function puppet() {
 				})
 			};
 
-			window.elementSize = (styles)=> {
-				return ({
-					width  : styles.width.replace('px', '') << 0,
-					height : styles.height.replace('px', '') << 0
-				});
-			};
+			window.elementVisible = (el, styles)=> (el.is(':visible') && styles['visibility'] !== 'hidden' && parentsVisible(el));
 
 			window.imageData = (el, size)=> {
 				const canvas = document.createElement('canvas');
@@ -152,13 +436,28 @@ export async function puppet() {
 
 				return (canvas.toDataURL('image/png'));
 			};
+
+			window.parentsVisible = (el)=> {
+				while (el.parentNode != null && el.parentNode instanceof Element) {
+					const parentStyles = elementStyles(el.parentNode);
+
+					if (parentStyles['display'] === 'none' || parentStyles['visibility'] === 'hidden') {
+						return (false);
+					}
+
+					el = el.parentNode;
+				}
+
+				return (true);
+			};
 		});
 
 		await page.waitForSelector('[class="app"]');
 
 		const extract = await parsePage(page);
 //		console.log('::::', extract.elements);
-//		console.log('IMAGES -->', extract.elements.images);
+//		console.log('IMAGES -->', Object.keys(extract.elements.images[0].styles).length);
+		console.log('IMAGE[0].border -->', extract.elements.images[0].styles);
 
 		const totals = {
 			'links'   : extract.elements.links.length,
@@ -193,9 +492,7 @@ export async function puppet() {
 		if (playground.new) {
 			response = await fetch(API_ENDPT_URL, {
 				method  : 'POST',
-				headers : {
-					'Content-Type' : 'application/json'
-				},
+				headers : { 'Content-Type' : 'application/json' },
 				body    : JSON.stringify({
 					action        : 'ADD_COMPONENTS',
 					playground_id : playgroundID,
@@ -265,10 +562,10 @@ async function extractElements(page) {
 			return ({
 				html   : el.outerHTML.replace(/"/g, '\\"'),
 				styles : styles,
-				border : null,
-				color  : elementColor(),
-				font   : elementFont(),
-				size   : elementSize(),
+				border : styles['border'],
+				color  : null,//window.elementColor(),
+				font   : null,//window.elementFont(),
+				bounds : null,//window.elementBounds(el, styles),
 				text   : el.innerText
 			});
 		}))),
@@ -290,10 +587,10 @@ async function extractElements(page) {
 			return ({
 				html   : el.outerHTML.replace(/"/g, '\\"'),
 				styles : styles,
-				border : null,
-				color  : window.elementColor(styles),
-				font   : window.elementFont(styles),
-				size   : window.elementSize(styles),
+				border : styles['border'],
+				color  : null,//window.elementColor(styles),
+				font   : null,//window.elementFont(styles),
+				bounds : null,//window.elementBounds(el, styles),
 				text   : el.value
 			});
 		}))),
@@ -304,12 +601,12 @@ async function extractElements(page) {
 			return ({
 				html   : el.outerHTML.replace(/"/g, '\\"'),
 				styles : styles,
-				border : null,
-				color  : elementColor(styles),
-				font   : elementFont(styles),
-				size   : elementSize(styles),
+				border : styles['border'],
+				color  : null,//window.elementColor(styles),
+				font   : null,//window.elementFont(styles),
+				bounds : null,//window.elementBounds(el, styles),
 				text   : el.alt,
-				data   : window.imageData(el, elementSize(styles)),
+				data   : null,//window.imageData(el, elementSize(styles)),
 				url    : el.src
 			});
 		})))
@@ -336,14 +633,5 @@ async function parsePage(page) {
 		},
 		elements   : await extractElements(page),
 		playground : null
-	});
-}
-
-function rgbaObject(color) {
-	return ({
-		r : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.red) << 0,
-		g : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.green) << 0,
-		b : (color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+)(, (?<alpha>\d(\.\d+)?))?\)$/).groups.blue) << 0,
-		a : (color.includes('rgba')) ? parseFloat(color.match(/^rgba?\((?<red>\d+), (?<green>\d+), (?<blue>\d+), (?<alpha>\d(\.\d+)?)\)$/).groups.alpha) * 255 : 255
 	});
 }
