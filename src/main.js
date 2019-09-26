@@ -108,6 +108,20 @@ export async function puppet() {
 
 		const browser = await puppeteer.launch();
 		const page = await browser.newPage();
+
+		page.on('console', (msg)=> {
+			msg.args().forEach((arg, i)=> {
+				console.log(`${i}: ${msg.args()[i]}`);
+			});
+		});
+
+		page.on('dialog', async(dialog)=> {
+			console.log('DIALOG -->', { ...dialog});
+			await dialog.dismiss();
+		});
+
+		page.evaluate(() => console.log('hello', 5, {foo: 'bar'}));
+
 		await page.goto(`http://localhost:${PORT}/`);
 
 		await page.evaluate(()=> {
