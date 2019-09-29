@@ -7,9 +7,9 @@ import puppeteer from 'puppeteer';
 import fetch from 'node-fetch';
 import path from 'path';
 import projectName from 'project-name';
-import { promisify } from 'util';
+import promise from 'bluebird';
 
-const access = promisify(fs.access);
+const access = promise.promisify(fs.access);
 
 const API_ENDPT_URL = 'https://api.designengine.ai/playground.php';
 const HOSTNAME = '127.0.0.1';

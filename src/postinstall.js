@@ -1,14 +1,21 @@
 #!/usr/bin/env node
 
-console.log('Post-install script HERE!');
+const promise = require('bluebird');
+const chalk = require('chalk');
+let fs = require('fs');
+const path = require('path');
+const shell = require('shelljs');
 
-import chalk from "chalk/types/index";
-import fs from 'fs';
-import path from 'path';
-import { promisify } from 'util';
 
+promise.promisifyAll(require('fs'));
 
-const access = promisify(fs.access);
+console.log('%s Adding Design Engine postbuild script...', chalk.green.bold('INFO'));
+
+if (fs.existsSync(`${process.cwd()}/../../node_modules/design-engine-playground/package.json`)) {
+	shell.cd('../..');
+}
+
+console.log('%s PWD -- ', chalk.green.bold('INFO'), process.cwd());
 const PACKAGE_PATH = path.join(process.cwd(), 'package.json');
 
 
@@ -41,15 +48,5 @@ function savePackage(data) {
 }
 
 
-(async function() {
-	try {
-		await access(PACKAGE_PATH, fs.constants.R_OK);
-
-	} catch (e) {
-		console.log('%s Couldn\'t find package.json! %s', chalk.red.bold('ERROR'), e);
-		process.exit(1);
-	}
-
-	fs.readFileAsync(PACKAGE_PATH).then(JSON.parse).then(addPostbuild).then(prettyPrint).then(savePackage).catch(console.log);
-	console.log('%s Successfully installed design-engine-playground!', chalk.green.bold('INFO'))
-})();
+fs.readFileAsync(PACKAGE_PATH).then(JSON.parse).then(addPostbuild).then(prettyPrint).then(savePackage).catch(console.log);
+shell.exec('npm link design-engine-playground');
