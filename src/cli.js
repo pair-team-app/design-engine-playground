@@ -2,7 +2,7 @@
 import arg from 'arg';
 import inquirer from 'inquirer';
 
-import { puppet } from './main';
+import { parseBuild } from './main';
 
 
 function parseArgs(argv) {
@@ -43,5 +43,5 @@ export async function cli(args) {
 	let options = parseArgs(args);
 //	console.log(options);
 	options = await promptURL(options);
-	await puppet();
+	await parseBuild();
 }
