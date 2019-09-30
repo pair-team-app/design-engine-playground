@@ -35,7 +35,7 @@ export async function parseBuild() {
 
 		const { totals, playground } = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
 
-		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.blue.bold(totals.links), chalk.blue.bold(totals.buttons), chalk.blue.bold(totals.images));
+		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
 		await writeCache('playground_id', playground.id);
 
 
