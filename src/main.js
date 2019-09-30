@@ -27,9 +27,6 @@ const MIME_TYPES = {
 };
 
 
-
-
-
 const cacheDir = ()=> {
 	const plat = process.platform;
 	const appName = 'design-engine-playground';
