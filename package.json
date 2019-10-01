@@ -59,7 +59,7 @@
         "arg": "^4.1.1",
         "bluebird": "^3.5.5",
         "chalk": "^2.4.2",
-        "design-engine-extract": "^0.1.1",
+        "design-engine-extract": "file:../design-engine-extract",
         "esm": "^3.2.25",
         "inquirer": "^6.5.0",
         "open": "^6.4.0",
