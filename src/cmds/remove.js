@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-
 import promise from 'bluebird';
 import chalk from 'chalk';
 import fs from 'fs';
@@ -16,7 +15,6 @@ promise.promisifyAll(require('fs'));
 		shell.cd('../..');
 	}
 
-//	console.log('%s PWD -- ', chalk.green.bold('INFO'), process.cwd());
 	const PACKAGE_PATH = path.join(process.cwd(), 'package.json');
 
 	const normalize = (data)=> {

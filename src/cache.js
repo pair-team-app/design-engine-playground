@@ -19,7 +19,6 @@ function cacheDir() {
 	return (appDir);
 }
 
-
 export async function getCache(key) {
 	const cachePath = path.join(cacheDir(), 'caches');
 
@@ -32,7 +31,6 @@ export async function getCache(key) {
 		return ((typeof caches[key] === 'undefined') ? null : caches[key]);
 	}
 }
-
 
 export async function writeCache(key, val) {
 	const cachePath = await path.join(cacheDir(), 'caches');

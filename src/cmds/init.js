@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-
 import promise from 'bluebird';
 import chalk from 'chalk';
 import fs from 'fs';

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-
 import chalk from 'chalk';
 import fs from 'fs';
 import http from 'http';
@@ -13,7 +12,6 @@ import { puppetWorker } from 'design-engine-extract';
 
 import { getCache, writeCache } from './cache';
 import { HOSTNAME, PORT, MIME_TYPES } from './consts';
-
 
 const access = promise.promisify(fs.access);
 
