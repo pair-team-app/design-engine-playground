@@ -18,8 +18,6 @@ const access = promise.promisify(fs.access);
 
 export async function parseBuild() {
 	server.listen(PORT, HOSTNAME, async()=> {
-//		console.log(`Server running at http://${HOSTNAME}:${PORT}/`);
-
 		try {
 			await access(path.join(process.cwd(), 'build'), fs.constants.R_OK);
 
@@ -31,9 +29,15 @@ export async function parseBuild() {
 		const playgroundID = await getCache('playground_id');
 		const openedPlayground = await getCache('playground_open');
 
-		const { totals, playground } = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
+		const res = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
+		const { playground } = res.reverse()[0];
+		Object.keys(res).forEach((key)=> {
+			const { totals } = res[key];
+			console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
+		});
 
-		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
+//		const { totals, playground } = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
+//		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
 		await writeCache('playground_id', playground.id);
 
 
@@ -47,7 +51,6 @@ export async function parseBuild() {
 		}
 	});
 }
-
 
 const server = http.createServer((req, res) => {
 	const reqPath = req.url.toString().split('?')[0];
