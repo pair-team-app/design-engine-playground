@@ -31,10 +31,10 @@ export async function parseBuild() {
 
 		const res = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
 		const { playground } = res.reverse()[0];
-		Object.keys(res).forEach((key)=> {
-			const { totals } = res[key];
-			console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
-		});
+//		Object.keys(res).forEach((key)=> {
+//			const { totals } = res[key];
+//			console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
+//		});
 
 //		const { totals, playground } = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
 //		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
@@ -43,7 +43,7 @@ export async function parseBuild() {
 
 		server.close();
 
-		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`));
+		console.log('\n%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`));
 		if (!openedPlayground) {
 			await writeCache('playground_open', true);
 			open(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`);
