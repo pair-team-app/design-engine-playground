@@ -1,6 +1,6 @@
 {
     "name": "design-engine-playground",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "A CLI to create a design engine playground",
     "main": "src/index.js",
     "bin": {
