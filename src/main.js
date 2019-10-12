@@ -31,12 +31,10 @@ export async function parseBuild() {
 		const playgroundID = (await getCache('playground_id') || 0);
 		const openedPlayground = await getCache('playground_open');
 
-		let renders = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
-//		const { device, extract, totals, playground } = renders.reverse()[0];
-
+		let renders = await puppetWorker(`http://localhost:${PORT}`, playgroundID);
 		renders.forEach((render)=> {
-			const { device, elements } = render;
-		 	console.log('%s [%s] Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.grey(device), chalk.magenta.bold(elements.links.length), chalk.magenta.bold(elements.buttons.length), chalk.magenta.bold(elements.images.length));
+			const { device, doc, elements } = render;
+		 	console.log('%s [%s]\tFound: %s', chalk.cyan.bold('INFO'), chalk.grey(device), [ ...Object.keys(elements).map((key)=> (`${chalk.magenta.bold(elements[key].length)} ${key}(s)`)), `${chalk.magenta.bold(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} colors(s)`, `${chalk.magenta.bold(doc.fonts.length)} fonts(s)`].join(', '));
 		});
 
 /*
@@ -50,7 +48,7 @@ export async function parseBuild() {
 			});
 		}));
 
-		const totalElements = renders.map((render)=> (Object.keys(render.elements).map((key)=> (render.elements[key].length)).reduce((acc, val)=> (acc + val)))).reduce((acc, val)=> (acc + val));
+//		const totalElements = renders.map((render)=> (Object.keys(render.elements).map((key)=> (render.elements[key].length)).reduce((acc, val)=> (acc + val)))).reduce((acc, val)=> (acc + val));
 		const totalElements = renders.map(({ elements })=> (Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val)))).reduce((acc, val)=> (acc + val));
 		console.log('%s Sending %s component(s)…', chalk.cyan.bold('INFO'), chalk.magenta.bold(totalElements));
 
