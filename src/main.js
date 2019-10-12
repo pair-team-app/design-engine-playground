@@ -38,7 +38,7 @@ export async function parseBuild() {
 		 	console.log('%s [%s] Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.grey(device), chalk.magenta.bold(elements.links.length), chalk.magenta.bold(elements.buttons.length), chalk.magenta.bold(elements.images.length));
 		});
 
-
+/*
 		renders = await Promise.all(renders.map(async(render, i)=> {
 			if (i === 0) {
 				console.log('%s Generating new playground…', chalk.cyan.bold('INFO'));
@@ -50,10 +50,8 @@ export async function parseBuild() {
 		}));
 
 		const totalElements = renders.map((render)=> (Object.keys(render.elements).map((key)=> (render.elements[key].length)).reduce((acc, val)=> (acc + val)))).reduce((acc, val)=> (acc + val));
+		const totalElements = renders.map(({ elements })=> (Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val)))).reduce((acc, val)=> (acc + val));
 		console.log('%s Sending %s component(s)…', chalk.cyan.bold('INFO'), chalk.magenta.bold(totalElements));
-
-//		console.log(renders.map((render, i)=> ({ i, playground : render.playground.id })));
-
 
 		renders = await Promise.all(renders.map(async(render)=> {
 			const { playground, elements } = render;
@@ -64,14 +62,14 @@ export async function parseBuild() {
 				components : response
 			})
 		}));
-
+*/
 
 //		await writeCache('playground_id', playground.id);
 
 
 		server.close();
 
-		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/spectrum-adobe-${renders.reverse()[0].playground.id}`));
+//		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/spectrum-adobe-${renders.reverse()[0].playground.id}`));
 //		if (!openedPlayground) {
 //			await writeCache('playground_open', true);
 //			open(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`);
@@ -80,7 +78,7 @@ export async function parseBuild() {
 	});
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer((req, res)=> {
 	const reqPath = req.url.toString().split('?')[0];
 	const dir = path.join(process.cwd(), 'build');
 	const file = path.join(dir, reqPath.replace(/\/$/, '/index.html'));
