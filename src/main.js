@@ -9,6 +9,7 @@ import path from 'path';
 import promise from 'bluebird';
 
 import { puppetWorker } from 'design-engine-extract';
+import { createPlayground, sendPlaygroundComponents } from 'design-engine-extract';
 
 import { getCache, writeCache } from './cache';
 import { HOSTNAME, PORT, MIME_TYPES } from './consts';
@@ -26,29 +27,56 @@ export async function parseBuild() {
 			process.exit(1);
 		}
 
-		const playgroundID = await getCache('playground_id');
+		const playgroundID = (await getCache('playground_id') || 0);
 		const openedPlayground = await getCache('playground_open');
 
-		const res = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
-		const { playground } = res.reverse()[0];
-//		Object.keys(res).forEach((key)=> {
-//			const { totals } = res[key];
-//			console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
-//		});
+		let renders = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
+//		const { device, extract, totals, playground } = renders.reverse()[0];
 
-//		const { totals, playground } = await puppetWorker(`http://localhost:${PORT}/`, playgroundID);
-//		console.log('%s Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.magenta.bold(totals.links), chalk.magenta.bold(totals.buttons), chalk.magenta.bold(totals.images));
-		await writeCache('playground_id', playground.id);
+		renders.forEach((render)=> {
+			const { device, elements } = render;
+		 	console.log('%s [%s] Found: %s link(s), %s button(s), %s image(s).', chalk.cyan.bold('INFO'), chalk.grey(device), chalk.magenta.bold(elements.links.length), chalk.magenta.bold(elements.buttons.length), chalk.magenta.bold(elements.images.length));
+		});
+
+
+		renders = await Promise.all(renders.map(async(render, i)=> {
+			if (i === 0) {
+				console.log('%s Generating new playground…', chalk.cyan.bold('INFO'));
+			}
+
+			return ({ ...render,
+				playground : await createPlayground(0, render.device, render.doc)
+			});
+		}));
+
+		const totalElements = renders.map((render)=> (Object.keys(render.elements).map((key)=> (render.elements[key].length)).reduce((acc, val)=> (acc + val)))).reduce((acc, val)=> (acc + val));
+		console.log('%s Sending %s component(s)…', chalk.cyan.bold('INFO'), chalk.magenta.bold(totalElements));
+
+//		console.log(renders.map((render, i)=> ({ i, playground : render.playground.id })));
+
+
+		renders = await Promise.all(renders.map(async(render)=> {
+			const { playground, elements } = render;
+			const response = await sendPlaygroundComponents(playground.id, elements);
+			console.log(response);
+
+			return ({ ...render,
+				components : response
+			})
+		}));
+
+
+//		await writeCache('playground_id', playground.id);
 
 
 		server.close();
 
-		console.log('\n%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`));
-		if (!openedPlayground) {
-			await writeCache('playground_open', true);
-			open(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`);
-//			open(`http://playground.designengine.ai/${55}`);
-		}
+		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/spectrum-adobe-${renders.reverse()[0].playground.id}`));
+//		if (!openedPlayground) {
+//			await writeCache('playground_open', true);
+//			open(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`);
+////			open(`http://playground.designengine.ai/${55}`);
+//		}
 	});
 }
 
