@@ -27,6 +27,7 @@ export async function parseBuild() {
 			process.exit(1);
 		}
 
+		const userID = (await getCache('user_id') || 0);
 		const playgroundID = (await getCache('playground_id') || 0);
 		const openedPlayground = await getCache('playground_open');
 
@@ -45,7 +46,7 @@ export async function parseBuild() {
 			}
 
 			return ({ ...render,
-				playground : await createPlayground(0, render.device, render.doc)
+				playground : await createPlayground(userID, render.device, render.doc)
 			});
 		}));
 
