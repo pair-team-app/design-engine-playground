@@ -62,6 +62,7 @@
         "design-engine-extract": "file:///labor/projects/npm_modules/design-engine-extract/develop",
         "esm": "^3.2.25",
         "inquirer": "^6.5.0",
+        "node-cache": "^5.0.0",
         "open": "^6.4.0",
         "shelljs": "^0.8.3"
     }
