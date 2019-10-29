@@ -1,36 +1,14 @@
 #!/usr/bin/env node
 'use strict';
 
-//import fs from 'fs';
-//import path from 'path';
 
 import NodeCache from 'node-cache';
-
 
 
 const cache = new NodeCache({
 	stdTTL      : (5 * 60),
 	checkperiod : ((5 * 60) * 0.2)
 });
-
-
-
-//
-//
-//function cacheDir() {
-//	const plat = process.platform;
-//	const appName = 'design-engine-playground';
-//	const homeDir = process.env[(plat === 'win32') ? 'USERPROFILE' : 'HOME'];
-//	const appDir = (plat === 'win32') ? path.join(homeDir, 'AppData', appName) : path.join(homeDir, '.npm', `${appName}`);
-//
-//	if (!fs.existsSync(appDir)) {
-//		fs.mkdir(appDir, (err)=> {
-//		});
-//	}
-//
-//	return (appDir);
-//}
-
 
 
 export function reset() {
@@ -50,11 +28,12 @@ export function reset() {
 
 
 export function getAll() {
-//	return (Object.keys(cache.keys()).map((key)=> ({ [key] : cache.get(key) })));
 	return (cache.mget([
 		'user',
 		'playgrounds'
 	]));
+
+//	return (cache.mget(Object.keys(cache.keys())));
 }
 
 
@@ -109,31 +88,10 @@ export function getCache(key, val=null) {
 	}
 
 	return ((cache.has(key)) ? cache.get(key) : null);
-
-
-
-//	const cachePath = path.join(cacheDir(), 'caches');
-//
-//	if (!fs.existsSync(cachePath)) {
-//		fs.writeFile(cachePath, '{}', (err)=> {});
-//		return (null);
-//
-//	} else {
-//		const caches = JSON.parse(fs.readFileSync(cachePath));
-//		return ((typeof caches[key] === 'undefined') ? null : caches[key]);
-//	}
 }
 
 export function writeCache(key, val) {
 	console.log('writeCache():', { key, val }, 'cache.getStats()', cache.getStats(), `cache.has('${key}')`, cache.has(key), 'cache.keys', cache.keys());
 
 	return (cache.set(key, val));
-
-
-//	const cachePath = await path.join(cacheDir(), 'caches');
-//	const caches = { ...JSON.parse(fs.readFileSync(cachePath)),
-//		[key] : val
-//	};
-//
-//	fs.writeFile(cachePath, JSON.stringify(caches), (err)=> {});
 }
