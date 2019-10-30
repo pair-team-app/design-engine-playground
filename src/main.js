@@ -33,6 +33,7 @@ export async function parseBuild() {
 			console.log('%s [%s]: %s', chalk.cyan.bold('INFO'), chalk.grey(device), [ ...Object.keys(elements).map((key)=> (`${chalk.magenta.bold(elements[key].length)} ${key}(s)`)), `${chalk.magenta.bold(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} colors(s)`, `${chalk.magenta.bold(doc.fonts.length)} fonts(s)`].join(', '));
 		});
 
+		/*
 		renders = await Promise.all(renders.map(async(render, i)=> {
 			const { device } = render;
 			console.log('%s Generating playground %d/%d [%s]…', chalk.cyan.bold('INFO'), (i+1), renders.length, chalk.grey(device));
@@ -54,6 +55,7 @@ export async function parseBuild() {
 				components : response
 			})
 		}));
+		*/
 
 
 //		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/spectrum-adobe-${renders.reverse()[0].playground.id}`));
