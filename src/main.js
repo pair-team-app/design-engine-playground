@@ -20,8 +20,6 @@ export async function parseBuild() {
 	const caches = (!getUser()) ? reset() : getAll();
 	const { user, playgrounds } = caches;
 
-	console.log(caches);
-
 	if (user.id === 0) {
 		// do signup here
 	}
