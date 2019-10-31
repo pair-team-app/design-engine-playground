@@ -34,6 +34,8 @@ export async function parseBuild() {
 		});
 
 		console.log('\n');
+		/*
+>>>>>>> 338e0770d771bc4d7a2d2391e64e3cdb62aedbbc
 		renders = await Promise.all(renders.map(async(render, i)=> {
 			const { device } = render;
 			console.log('%s Generating playground %d/%d [%s]…', chalk.cyan.bold('INFO'), (i+1), renders.length, chalk.grey(device));
@@ -55,6 +57,7 @@ export async function parseBuild() {
 				components : response
 			})
 		}));
+		*/
 
 
 
