@@ -4,6 +4,8 @@
 
 import NodeCache from 'node-cache';
 
+//import storage from 'node-persist';
+
 
 const cache = new NodeCache({
 	stdTTL      : (5 * 60),
@@ -28,12 +30,7 @@ export function reset() {
 
 
 export function getAll() {
-	return (cache.mget([
-		'user',
-		'playgrounds'
-	]));
-
-//	return (cache.mget(Object.keys(cache.keys())));
+	return (cache.mget(cache.keys()));
 }
 
 
@@ -48,7 +45,7 @@ export function getPlaygrounds() {
 
 
 export function getUser() {
-	return ((cache.has('user')) ? cache.get('user') : null);
+	return ((cache.has('user')) ? cache.get('user') : { id : 0 });
 }
 
 
@@ -75,7 +72,10 @@ export function writePlayground(playground) {
 
 
 export function writeUser(user) {
-	cache.write('user', { ...getUser(), ...user });
+	console.log('writeUser():', user, 'cache.getStats()', cache.getStats(), `cache.has('user')`, cache.has('user'), 'cache.keys()', cache.keys());
+
+//	cache.set('user', { ...(getUser() || {}), ...user });
+	cache.set('user', user);
 	return (getUser());
 }
 
@@ -95,3 +95,8 @@ export function writeCache(key, val) {
 
 	return (cache.set(key, val));
 }
+
+
+//(async()=> {
+//	await storage.init();
+//})();
