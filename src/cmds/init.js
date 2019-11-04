@@ -7,7 +7,8 @@ import chalk from 'chalk';
 import fs from 'fs';
 import inquirer from 'inquirer';
 
-import { getAll, getUser, writeUser } from '../cache';
+import { registerUser } from '../api';
+import { initCache, getUser, writeUser, flushAll } from '../cache';
 import { checkDir, normalize, prettyPrint, savePackage } from '../utils';
 
 promise.promisifyAll(require('fs'));
@@ -22,12 +23,13 @@ promise.promisifyAll(require('fs'));
 		return (data);
 	};
 
-	console.log('CACHE >>', getAll());
 
+	await initCache();
+//	await flushAll();
 
-	const user = getUser();
+	let user = await getUser();
 	console.log('USER >>', user);
-	if (!user || user.id === 0) {
+	if (user.id === 0) {
 		const questions = [{
 			type     : 'input',
 			name     : 'email',
@@ -42,8 +44,8 @@ promise.promisifyAll(require('fs'));
 		}];
 
 		const prompt = await inquirer.prompt(questions);
-		const { email, password } = prompt;
-		writeUser({ ...user, email, password });
+		user = await registerUser(prompt);
+		await writeUser({ ...user });
 	}
 
 
@@ -58,6 +60,4 @@ promise.promisifyAll(require('fs'));
 		fs.readFileAsync(pkgPath).then(JSON.parse).then(appendPostbuild).then(prettyPrint).then((data)=> savePackage(data, pkgPath)).catch(console.log);
 		console.log('%s Successfully modified postbuild script.', chalk.green.bold('INFO'));
 	}
-
-	console.log('CACHE >>', getAll());
 })();

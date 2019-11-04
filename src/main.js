@@ -18,7 +18,7 @@ import { makeServer } from './server';
 
 
 export async function parseBuild() {
-	const caches = (!getUser()) ? reset() : getAll();
+	const caches = (!(await getUser())) ? await reset() : await getAll();
 	const { user, playgrounds } = caches;
 
 	if (user.id === 0) {
