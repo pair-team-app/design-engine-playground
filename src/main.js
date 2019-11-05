@@ -25,7 +25,7 @@ export async function parseBuild() {
 	const cache = (!(await getUser())) ? await reset() : await getAll();
 //	console.log('cache', cache);
 
-	const { user, playgrounds } = cache;
+	const { user } = cache;
 
 	if (user.id === 0) {
 		// do signup here
@@ -40,8 +40,6 @@ export async function parseBuild() {
 			console.log('%s [%s]: %s', chalk.cyan.bold('INFO'), chalk.grey(device), [ ...Object.keys(elements).map((key)=> (`${chalk.magenta.bold(elements[key].length)} ${key}(s)`)), `${chalk.magenta.bold(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} colors(s)`, `${chalk.magenta.bold(doc.fonts.length)} fonts(s)`].join(', '));
 		});
 
-//		await writeCache('derp', [5, 4, 7]);
-
 //		renders = await Promise.all(renders.map(async(render, i)=> {
 //			const { device } = render;
 //			console.log('%s Generating playground %d/%d [%s]…', chalk.cyan.bold('INFO'), (i+1), renders.length, chalk.grey(device));
@@ -55,7 +53,7 @@ export async function parseBuild() {
 //		renders = await Promise.all(renders.map(async(render)=> {
 //			const { playground, elements } = render;
 //
-//			writePlayground(playground);
+//			await writePlayground(playground);
 //			const response = await sendPlaygroundComponents(playground.id, elements);
 ////			console.log(response);
 //
