@@ -7,9 +7,11 @@ import { renderWorker } from 'design-engine-extract';
 import { createPlayground, sendPlaygroundComponents } from 'design-engine-extract';
 
 import {
+	initCache,
 	getAll,
 	getUser,
 	reset,
+	writeCache,
 	writePlayground } from './cache';
 import { PORT } from './consts';
 import { makeServer } from './server';
@@ -18,8 +20,12 @@ import { makeServer } from './server';
 
 
 export async function parseBuild() {
-	const caches = (!(await getUser())) ? await reset() : await getAll();
-	const { user, playgrounds } = caches;
+	await initCache();
+
+	const cache = (!(await getUser())) ? await reset() : await getAll();
+//	console.log('cache', cache);
+
+	const { user, playgrounds } = cache;
 
 	if (user.id === 0) {
 		// do signup here
@@ -33,6 +39,8 @@ export async function parseBuild() {
 			const { device, doc, elements } = render;
 			console.log('%s [%s]: %s', chalk.cyan.bold('INFO'), chalk.grey(device), [ ...Object.keys(elements).map((key)=> (`${chalk.magenta.bold(elements[key].length)} ${key}(s)`)), `${chalk.magenta.bold(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} colors(s)`, `${chalk.magenta.bold(doc.fonts.length)} fonts(s)`].join(', '));
 		});
+
+//		await writeCache('derp', [5, 4, 7]);
 
 //		renders = await Promise.all(renders.map(async(render, i)=> {
 //			const { device } = render;

@@ -18,9 +18,14 @@ export async function flushAll() {
 
 export async function getAll() {
 //	console.log('getAll():', 'storage.keys()', await storage.keys());
-	return (await Promise.all((await storage.keys()).map(async(key)=> ({
-		[key] : await storage.getItem(key)
-	}))));
+
+	let caches = {};
+	(await Promise.all((await storage.keys()).map(async(key)=> ({ [key] : await storage.getItem(key) })))).forEach((entry)=> {
+		const key = Object.keys(entry)[0];
+		caches[key] = entry[key];
+	});
+
+	return (caches);
 }
 
 
