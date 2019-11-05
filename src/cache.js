@@ -37,13 +37,13 @@ export async function getCache(key, val=null) {
 
 export async function getPlayground(playgroundID) {
 //	console.log('getPlayground():', playgroundID, 'storage.keys()', await storage.keys());
-	return (getPlaygrounds().find((playground)=> (playground.id === playgroundID)).id || null);
+	return ((await getPlaygrounds()).find((playground)=> (playground.id === playgroundID)).id || null);
 }
 
 
 export async function getPlaygrounds() {
 //	console.log('getPlaygrounds():', 'storage.keys()', await storage.keys());
-	return ((hasPlaygrounds()) ? cache.get('playgrounds') : []);
+	return ((await hasPlaygrounds()) ? await storage.getItem('playgrounds') : []);
 }
 
 
