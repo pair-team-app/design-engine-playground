@@ -86,11 +86,17 @@ export async function writePlayground(playground) {
 	let playgrounds = await getPlaygrounds();
 	const ind = playgrounds.indexOf(playground);
 
+	const ids = {
+		id      : playground.id,
+		buildID : playground.build_id
+	};
+
+
 	if (ind !== -1) {
-		playgrounds.splice(ind, 1, { id : playground.id })
+		playgrounds.splice(ind, 1, ids);
 
 	} else {
-		playgrounds = [{ id : playground.id }];
+		playgrounds = [ids];
 	}
 
 	await storage.setItem('playgrounds', playgrounds);
