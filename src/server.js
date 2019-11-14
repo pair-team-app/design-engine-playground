@@ -24,9 +24,12 @@ export async function makeServer(onListen=null) {
 		}
 
 		const server = http.createServer((req, res)=> {
+//			console.log('>>>>>', req.url);
+
 			const reqPath = req.url.toString().split('?')[0];
 			const dir = path.join(process.cwd(), 'build');
 			const file = path.join(dir, reqPath.replace(/\/$/, '/index.html'));
+//			const file = path.join(dir, '/index.html');
 
 			if (file.indexOf(dir + path.sep) !== 0) {
 				res.statusCode = 403;
