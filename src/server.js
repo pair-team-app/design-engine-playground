@@ -24,14 +24,14 @@ export async function makeServer(onListen=null) {
 		}
 
 		const server = http.createServer((req, res)=> {
-//			console.log('>>>>>', req.url);
-
 			const reqPath = req.url.toString().split('?')[0];
 			const dir = path.join(process.cwd(), 'build');
-			const file = path.join(dir, reqPath.replace(/\/$/, '/index.html'));
-//			const file = path.join(dir, '/index.html');
+			const filePath = path.join(dir, reqPath.replace(/\/$/, '/index.html'));
+			const file = (fs.existsSync(filePath)) ? filePath : path.join(dir, 'index.html');
 
-			if (file.indexOf(dir + path.sep) !== 0) {
+//			console.log('>>>>>', reqPath);
+
+			if (file.indexOf(`${dir}${path.sep}`) !== 0) {
 				res.statusCode = 403;
 				res.setHeader('Content-Type', 'text/plain');
 				return (res.end('Forbidden'));
@@ -39,7 +39,7 @@ export async function makeServer(onListen=null) {
 
 			const readStream = fs.createReadStream(file);
 			readStream.on('open', ()=> {
-				res.setHeader('Content-Type', MIME_TYPES[path.extname(file).slice(1)] || 'text/plain');
+				res.setHeader('Content-Type', (MIME_TYPES[path.extname(file).slice(1)] || 'text/plain'));
 				readStream.pipe(res);
 			});
 
@@ -50,11 +50,12 @@ export async function makeServer(onListen=null) {
 			});
 		});
 
-		if (onListen) {
-			server.listen(PORT, HOSTNAME, async()=> {
+
+		server.listen(PORT, HOSTNAME, async()=> {
+			if (onListen) {
 				onListen();
-			});
-		}
+			}
+		});
 
 		resolve(server);
 	}));
