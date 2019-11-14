@@ -60,7 +60,7 @@ export async function parseBuild() {
 		}));
 
 		renders.forEach((render)=> {
-			console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`https://pairurl.com/app/team-name/${Strings.slugifyURI(render.doc.title)}/${render.playground.build_id}/${render.playground.id}`));
+			console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`https://pairurl.com/app/team-name/${Strings.slugifyURI(render.doc.title)}/${render.playground.build_id}/${render.playground.id}/views`));
 		});
 
 
