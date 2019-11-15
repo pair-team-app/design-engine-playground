@@ -3,13 +3,12 @@
 
 
 import promise from 'bluebird';
-import chalk from 'chalk';
 import fs from 'fs';
 import inquirer from 'inquirer';
 
 import { registerUser } from '../api';
 import { initCache, getUser, writeUser, flushAll } from '../cache';
-import { CMD_PARSE } from '../consts';
+import { CMD_PARSE, ChalkStyles } from '../consts';
 import { checkDir, normalize, prettyPrint, savePackage } from '../utils';
 
 promise.promisifyAll(require('fs'));
@@ -59,6 +58,6 @@ promise.promisifyAll(require('fs'));
 
 	if (prompt.append) {
 		fs.readFileAsync(pkgPath).then(JSON.parse).then(appendPostbuild).then(prettyPrint).then((data)=> savePackage(data, pkgPath)).catch(console.log);
-		console.log('%s Successfully modified postbuild script.', chalk.green.bold('INFO'));
+		console.log('%s Successfully modified postbuild script.', ChalkStyles.INFO);
 	}
 })();

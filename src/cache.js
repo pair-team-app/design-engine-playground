@@ -16,6 +16,19 @@ export async function flushAll() {
 	return (true);
 }
 
+
+export async function dropCache(key) {
+//	console.log('dropCache():', { key }, 'storage.keys()', await storage.keys());
+	return ((hasVal(key)) ? await storage.removeItem(key) : false);
+}
+
+
+export async function dropPlayground() {
+//	console.log('dropPlayground():', 'storage.keys()', await storage.keys());
+	return (await dropCache('playground'));
+}
+
+
 export async function getAll() {
 //	console.log('getAll():', 'storage.keys()', await storage.keys());
 
@@ -35,26 +48,30 @@ export async function getCache(key, val=null) {
 }
 
 
-export async function getPlayground(playgroundID) {
-//	console.log('getPlayground():', playgroundID, 'storage.keys()', await storage.keys());
-	return ((await getPlaygrounds()).find((playground)=> (playground.id === playgroundID)).id || null);
-}
-
-
-export async function getPlaygrounds() {
-//	console.log('getPlaygrounds():', 'storage.keys()', await storage.keys());
-	return ((await hasPlaygrounds()) ? await storage.getItem('playgrounds') : []);
+export async function getPlayground() {
+//	console.log('getPlayground():', 'storage.keys()', await storage.keys());
+	return ((await hasPlayground()) ? await storage.getItem('playground') : {
+		id      : null,
+		buildID : null
+	});
 }
 
 
 export async function getUser() {
 //	console.log('getUser():', 'storage.keys()', await storage.keys());
-	return ((await storage.getItem('user')) ? await storage.getItem('user') : { id : 0 });
+	return ((await hasUser()) ? await storage.getItem('user') : null);
 }
 
-export async function hasPlaygrounds() {
-//	console.log('hasPlaygrounds():', 'storage.keys()', await storage.keys());
-	return ((await storage.valuesWithKeyMatch('playgrounds')).length > 0);
+
+export async function hasPlayground() {
+//	console.log('hasPlayground():', 'storage.keys()', await storage.keys());
+	return ((await storage.valuesWithKeyMatch('playground')).length > 0);
+}
+
+
+export async function hasUser() {
+//	console.log('hasVal():', 'storage.keys()', await storage.keys());
+	return ((await storage.valuesWithKeyMatch('user')).length > 0);
 }
 
 
@@ -67,10 +84,13 @@ export async function hasVal(key) {
 export async function reset() {
 //	console.log('reset():', 'storage.keys()', await storage.keys());
 
-	await storage.setItem('user', { id : 0 });
-	await storage.setItem('playgrounds', []);
+	await writeCache('user', null);
+	await writeCache('playground', {
+		id      : null,
+		buildID : null
+	});
 
-	return (await getAll());
+	return (true);
 }
 
 
@@ -83,30 +103,14 @@ export async function writeCache(key, val) {
 export async function writePlayground(playground) {
 //	console.log('writePlayground():', playground, 'storage.keys()', await storage.keys());
 
-	let playgrounds = await getPlaygrounds();
-	const ind = playgrounds.indexOf(playground);
-
-	const ids = {
+	return (await writeCache('playground', {
 		id      : playground.id,
 		buildID : playground.build_id
-	};
-
-
-	if (ind !== -1) {
-		playgrounds.splice(ind, 1, ids);
-
-	} else {
-		playgrounds = [ids];
-	}
-
-	await storage.setItem('playgrounds', playgrounds);
-	return (playgrounds);
+	}));
 }
 
 
 export async function writeUser(user) {
 //	console.log('writeUser():', user, 'storage.keys()', await storage.keys());
-
-	await storage.setItem('user', user);
-	return (await getUser());
+	return (await writeCache('user', user));
 }

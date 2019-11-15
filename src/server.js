@@ -3,12 +3,11 @@
 
 
 import promise from 'bluebird';
-import chalk from 'chalk';
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
 
-import { HOSTNAME, MIME_TYPES, PORT } from './consts';
+import { HOSTNAME, MIME_TYPES, PORT, ChalkStyles } from './consts';
 
 const access = promise.promisify(fs.access);
 
@@ -19,7 +18,7 @@ export async function makeServer(onListen=null) {
 			await access(path.join(process.cwd(), 'build'), fs.constants.R_OK);
 
 		} catch (e) {
-			console.log('%s Couldn\'t find build dir! %s', chalk.red.bold('ERROR'), e);
+			console.log('%s Couldn\'t find build dir! %s', ChalkStyles.ERROR, e);
 			reject(e);
 		}
 

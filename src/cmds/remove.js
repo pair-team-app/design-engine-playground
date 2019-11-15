@@ -3,10 +3,9 @@
 
 
 import promise from 'bluebird';
-import chalk from 'chalk';
 import fs from 'fs';
 
-import { CMD_PARSE } from '../consts';
+import { CMD_PARSE, ChalkStyles } from '../consts';
 import { checkDir, normalize, prettyPrint, savePackage } from '../utils';
 
 promise.promisifyAll(require('fs'));
@@ -32,6 +31,6 @@ promise.promisifyAll(require('fs'));
 
 	const pkgPath = await checkDir();
 
-	console.log('%s Removing Pair URL postbuild script...', chalk.green.bold('INFO'));
+	console.log('%s Removing Pair URL postbuild script...', ChalkStyles.INFO);
 	fs.readFileAsync(pkgPath).then(JSON.parse).then(dropPostbuild).then(prettyPrint).then((data)=> savePackage(data, pkgPath)).catch(console.log);
 })();

@@ -3,8 +3,7 @@
 
 
 import fetch from 'node-fetch';
-
-import { API_ENDPT_URL, FETCH_CFG } from './consts'
+import { API_ENDPT_URL, FETCH_CFG, ChalkStyles } from './consts'
 
 
 export async function loginUser(user) {
@@ -20,7 +19,7 @@ export async function loginUser(user) {
 		response = await response.json();
 
 	} catch (e) {
-		console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
+		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
 	}
 
 	console.log('LOGIN -->>', response);
@@ -44,7 +43,7 @@ export async function registerUser(user) {
 		response = await response.json();
 
 	} catch (e) {
-		console.log('%s Couldn\'t parse response! %s', chalk.red.bold('ERROR'), e);
+		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
 	}
 
 	console.log('REGISTER -->>', response);
