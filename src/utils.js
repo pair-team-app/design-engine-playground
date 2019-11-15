@@ -12,7 +12,8 @@ promise.promisifyAll(require('fs'));
 
 export const checkDir = async()=> {
 //	console.log('PWD -- ', process.cwd());
-	if (fs.existsSync(`${process.cwd()}/../../node_modules/design-engine-playground/package.json`)) {
+//	if (fs.existsSync(`${process.cwd()}/../../node_modules/design-engine-playground/package.json`)) {
+	if (fs.existsSync(path.join(process.cwd(), '..', '..', 'node_modules', 'design-engine-playground', 'package.json'))) {
 		shell.cd('../..');
 	}
 

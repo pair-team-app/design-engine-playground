@@ -25,3 +25,5 @@ export const MIME_TYPES = {
 	svg  : 'image/svg+xml',
 	js   : 'application/javascript'
 };
+
+export const CMD_PARSE = 'npm pair-url --parse';

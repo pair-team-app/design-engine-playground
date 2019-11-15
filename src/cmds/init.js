@@ -9,6 +9,7 @@ import inquirer from 'inquirer';
 
 import { registerUser } from '../api';
 import { initCache, getUser, writeUser, flushAll } from '../cache';
+import { CMD_PARSE } from '../consts';
 import { checkDir, normalize, prettyPrint, savePackage } from '../utils';
 
 promise.promisifyAll(require('fs'));
@@ -17,7 +18,7 @@ promise.promisifyAll(require('fs'));
 (async()=> {
 	const appendPostbuild = async(data)=> {
 		let scripts = await normalize(data);
-		scripts['postbuild'] = (!scripts.hasOwnProperty('postbuild')) ? 'npx design-engine --parse' : `${scripts['postbuild']}${(!scripts['postbuild'].includes('npx design-engine --parse')) ? ' && npx design-engine --parse' : ''}`;
+		scripts['postbuild'] = (!scripts.hasOwnProperty('postbuild')) ? CMD_PARSE : `${scripts['postbuild']}${(!scripts['postbuild'].includes(CMD_PARSE)) ? ` && ${CMD_PARSE}` : ''}`;
 
 		data.scripts = scripts;
 		return (data);
@@ -53,7 +54,7 @@ promise.promisifyAll(require('fs'));
 	const prompt = await inquirer.prompt({
 		type    : 'confirm',
 		name    : 'append',
-		message : 'Allow Design Engine to add a postbuild script to your project\'s package.json?'
+		message : 'Allow PairURL to add a postbuild script to your project\'s package.json?'
 	});
 
 	if (prompt.append) {

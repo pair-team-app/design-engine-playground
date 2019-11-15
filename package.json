@@ -4,7 +4,7 @@
     "description": "A CLI to create a design engine playground",
     "main": "src/index.js",
     "bin": {
-        "design-engine": "src/index.js"
+        "pair-url": "src/index.js"
     },
     "publishConfig": {
         "access": "public"
