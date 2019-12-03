@@ -6,6 +6,27 @@ import fetch from 'node-fetch';
 import { API_ENDPT_URL, FETCH_CFG, ChalkStyles } from './consts'
 
 
+export async function disableAccount(user) {
+	const cfg = { ...FETCH_CFG,
+		body : JSON.stringify({ ...FETCH_CFG.body,
+			action  : 'DISABLE_ACCOUNT',
+			payload : { user_id : user.id }
+		})
+	};
+
+	let response = await fetch(API_ENDPT_URL, cfg);
+	try {
+		response = await response.json();
+
+	} catch (e) {
+		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
+	}
+
+	console.log('DISABLE_ACCOUNT -->>', response);
+	return (response.user);
+}
+
+
 export async function loginUser(user) {
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
