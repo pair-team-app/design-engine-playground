@@ -12,6 +12,7 @@ import {
 	dropPlayground,
 	getPlayground,
 	writePlayground,
+	getTeam,
 	getUser } from './cache';
 import { MAKE_PLAYGROUND, SEND_ELEMENTS } from './config';
 import { PORT, ChalkStyles } from './consts';
@@ -25,6 +26,7 @@ export async function parseBuild() {
 
 
 	const user = await getUser();
+	const team = await getTeam();
 	if (!user) {
 		// do signup here
 	}
@@ -49,7 +51,7 @@ export async function parseBuild() {
 				console.log('\n%s Generating [%s] playground (%s/%s)…',  ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1), ChalkStyles.NUMBER(renders.length));
 
 				const { buildID } = await getPlayground();
-				const playground = await createPlayground((buildID || -1), user.id, render.device, render.doc);
+				const playground = await createPlayground((buildID || -1), user.id, team.id, render.device, render.doc);
 
 				if (!buildID) {
 					await writePlayground(playground);

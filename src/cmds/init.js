@@ -6,8 +6,8 @@ import promise from 'bluebird';
 import fs from 'fs';
 import inquirer from 'inquirer';
 
-import { registerUser } from '../api';
-import { initCache, getUser, writeUser, flushAll } from '../cache';
+import { registerUser, teamLookup } from '../api';
+import { initCache, getUser, writeTeam, writeUser, reset, flushAll } from '../cache';
 import { CMD_PARSE, ChalkStyles } from '../consts';
 import { checkDir, normalize, prettyPrint, savePackage } from '../utils';
 
@@ -29,7 +29,11 @@ promise.promisifyAll(require('fs'));
 
 	let user = await getUser();
 	console.log('USER >>', user);
-	if (user.id === 0) {
+	if (!user) {
+		await reset();
+	}
+
+	if (!user || user.id === 0) {
 		const questions = [{
 			type     : 'input',
 			name     : 'email',
@@ -46,6 +50,9 @@ promise.promisifyAll(require('fs'));
 		const prompt = await inquirer.prompt(questions);
 		user = await registerUser(prompt);
 		await writeUser({ ...user });
+
+		const team = await teamLookup(user);
+		await writeTeam(team);
 	}
 
 

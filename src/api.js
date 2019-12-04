@@ -43,7 +43,7 @@ export async function loginUser(user) {
 		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
 	}
 
-	console.log('LOGIN -->>', response);
+//	console.log('LOGIN -->>', response);
 	return (response.user);
 }
 
@@ -67,7 +67,7 @@ export async function registerUser(user) {
 		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
 	}
 
-	console.log('REGISTER -->>', response);
+//	console.log('REGISTER -->>', response);
 
 	const status = parseInt(response.status, 16);
 	if (status === 0x00) {
@@ -75,4 +75,25 @@ export async function registerUser(user) {
 	}
 
 	return (await loginUser(user));
+}
+
+
+export async function teamLookup(user) {
+	const cfg = { ...FETCH_CFG,
+		body : JSON.stringify({ ...FETCH_CFG.body,
+			action  : 'TEAM_LOOKUP',
+			payload : { user_id : user.id }
+		})
+	};
+
+	let response = await fetch(API_ENDPT_URL, cfg);
+	try {
+		response = await response.json();
+
+	} catch (e) {
+		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
+	}
+
+//	console.log('TEAM_LOOKUP -->>', response);
+	return (response.teams.shift());
 }

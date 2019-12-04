@@ -57,6 +57,12 @@ export async function getPlayground() {
 }
 
 
+export async function getTeam() {
+//	console.log('getTeam():', 'storage.keys()', await storage.keys());
+	return ((await hasTeam()) ? await storage.getItem('team') : null);
+}
+
+
 export async function getUser() {
 //	console.log('getUser():', 'storage.keys()', await storage.keys());
 	return ((await hasUser()) ? await storage.getItem('user') : null);
@@ -69,8 +75,14 @@ export async function hasPlayground() {
 }
 
 
+export async function hasTeam() {
+//	console.log('hasTeam():', 'storage.keys()', await storage.keys());
+	return ((await storage.valuesWithKeyMatch('team')).length > 0);
+}
+
+
 export async function hasUser() {
-//	console.log('hasVal():', 'storage.keys()', await storage.keys());
+//	console.log('hasUser():', 'storage.keys()', await storage.keys());
 	return ((await storage.valuesWithKeyMatch('user')).length > 0);
 }
 
@@ -89,6 +101,7 @@ export async function reset() {
 		id      : null,
 		buildID : null
 	});
+	await writeCache('team', null);
 
 	return (true);
 }
@@ -107,6 +120,12 @@ export async function writePlayground(playground) {
 		id      : playground.id,
 		buildID : playground.build_id
 	}));
+}
+
+
+export async function writeTeam(team) {
+//	console.log('writeTeam():', team, 'storage.keys()', await storage.keys());
+	return (await writeCache('team', team));
 }
 
 
