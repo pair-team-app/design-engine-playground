@@ -47,11 +47,11 @@ export async function parseBuild() {
 			for (let i=0; i<renders.length; i++) {
 				const render = renders[i];
 
-				const { device, elements } = render;
+				const { device, doc, elements } = render;
 				console.log('\n%s Generating [%s] playground (%s/%s)…',  ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1), ChalkStyles.NUMBER(renders.length));
 
 				const { buildID } = await getPlayground();
-				const playground = await createPlayground((buildID || -1), user.id, team.id, render.device, render.doc);
+				const playground = await createPlayground((buildID || -1), user.id, team.id, device, doc);
 
 				if (!buildID) {
 					await writePlayground(playground);
