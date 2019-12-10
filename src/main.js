@@ -39,7 +39,7 @@ export async function parseBuild() {
 
 		renders.forEach((render, i)=> {
 			const { device, doc, elements } = render;
-			console.log('%s%s Completed parsing [%s]: %s', ((i === 0) ? '\n' : ''), ChalkStyles.INFO, ChalkStyles.DEVICE(device), [ ...Object.keys(elements).map((key)=> (`(${ChalkStyles.NUMBER(elements[key].length)}) ${Strings.pluralize(key.slice(0, -1), elements[key].length)}`)), `(${ChalkStyles.NUMBER(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))}) ${Strings.pluralize('color', Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))}`, `(${ChalkStyles.NUMBER(doc.fonts.length)}) ${Strings.pluralize('font', doc.fonts.length)}`].join(', '));
+			console.log('%s%s Completed parsing [%s]: %s', ((i === 0) ? '\n' : ''), ChalkStyles.INFO, ChalkStyles.DEVICE(device), [ ...Object.keys(elements).map((key)=> (`${ChalkStyles.NUMBER(elements[key].length)} ${Strings.pluralize(key.slice(0, -1), elements[key].length)}`)), `${ChalkStyles.NUMBER(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} ${Strings.pluralize('color', Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))}`, `${ChalkStyles.NUMBER(doc.fonts.length)} ${Strings.pluralize('font', doc.fonts.length)}`].join(', '));
 		});
 
 
@@ -48,7 +48,7 @@ export async function parseBuild() {
 				const render = renders[i];
 
 				const { device, doc, elements } = render;
-				console.log('\n%s Generating [%s] playground (%s/%s)…',  ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1), ChalkStyles.NUMBER(renders.length));
+				console.log('\n%s Generating [%s] playground (%s/%s)…',  ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1, true), ChalkStyles.NUMBER(renders.length, true));
 
 				const { buildID } = await getPlayground();
 				const playground = await createPlayground((buildID || -1), user.id, team.id, device, doc);
@@ -142,7 +142,7 @@ export async function parseBuild() {
 //		}
 
 		const elapsed = `${(((Date.now() - startDate) * 0.001) << 0)}`;
-		console.log('\n%s Finished in (%s)s', ChalkStyles.DONE, ChalkStyles.NUMBER(elapsed));
+		console.log('\n%s Finished in %s seconds.', ChalkStyles.DONE, ChalkStyles.NUMBER(elapsed));
 
 		await dropPlayground();
 		/*

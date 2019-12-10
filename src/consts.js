@@ -5,7 +5,7 @@
 import chalk from 'chalk';
 
 
-export const CMD_PARSE = 'npm pair-url --parse';
+export const CMD_PARSE = 'npx pair-url --parse';
 
 export const HOSTNAME = '127.0.0.1';
 export const PORT = 1066;
@@ -36,7 +36,7 @@ export const ChalkStyles = {
 	ERROR  : chalk.red.bold('ERROR'),
 	DONE   : chalk.greenBright('DONE'),
 	DEVICE : chalk.grey,
-	NUMBER : chalk.magentaBright,
+	NUMBER : (val, bare=false)=> ((bare) ? chalk.magentaBright(val) : `(${chalk.magentaBright(val)})`),
 	PATH   : chalk.blueBright,
 	URL    : chalk.blue.bold.underline
 };
