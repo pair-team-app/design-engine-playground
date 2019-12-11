@@ -35,7 +35,8 @@ export const ChalkStyles = {
 	INFO   : chalk.cyanBright('INFO'),
 	ERROR  : chalk.red.bold('ERROR'),
 	DONE   : chalk.greenBright('DONE'),
-	DEVICE : chalk.grey,
+//	DEVICE : chalk.grey,
+	DEVICE : (val)=> (`[${chalk.grey(val)}]`),
 	NUMBER : (val, bare=false)=> ((bare) ? chalk.magentaBright(val) : `(${chalk.magentaBright(val)})`),
 	PATH   : chalk.blueBright,
 	URL    : chalk.blue.bold.underline

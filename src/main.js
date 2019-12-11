@@ -39,7 +39,7 @@ export async function parseBuild() {
 
 		renders.forEach((render, i)=> {
 			const { device, doc, elements } = render;
-			console.log('%s%s Completed parsing [%s]: %s', ((i === 0) ? '\n' : ''), ChalkStyles.INFO, ChalkStyles.DEVICE(device), [ ...Object.keys(elements).map((key)=> (`${ChalkStyles.NUMBER(elements[key].length)} ${Strings.pluralize(key.slice(0, -1), elements[key].length)}`)), `${ChalkStyles.NUMBER(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} ${Strings.pluralize('color', Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))}`, `${ChalkStyles.NUMBER(doc.fonts.length)} ${Strings.pluralize('font', doc.fonts.length)}`].join(', '));
+			console.log('%s %s Completed parsing: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), [ ...Object.keys(elements).map((key)=> (`${ChalkStyles.NUMBER(elements[key].length)} ${Strings.pluralize(key.slice(0, -1), elements[key].length)}`)), `${ChalkStyles.NUMBER(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} ${Strings.pluralize('color', Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))}`, `${ChalkStyles.NUMBER(doc.fonts.length)} ${Strings.pluralize('font', doc.fonts.length)}`].join(', '));
 		});
 
 
@@ -48,7 +48,7 @@ export async function parseBuild() {
 				const render = renders[i];
 
 				const { device, doc, elements } = render;
-				console.log('\n%s Generating [%s] playground (%s/%s)…',  ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1, true), ChalkStyles.NUMBER(renders.length, true));
+				console.log('%s %s Generating playground (%s/%s)…', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1, true), ChalkStyles.NUMBER(renders.length, true));
 
 				const { buildID } = await getPlayground();
 				const playground = await createPlayground((buildID || -1), user.id, team.id, device, doc);
@@ -59,92 +59,19 @@ export async function parseBuild() {
 
 				if (SEND_ELEMENTS) {
 					const total = Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val));
-					console.log('%s Sending %s [%s] component(s)…', ChalkStyles.INFO, ChalkStyles.NUMBER(total), ChalkStyles.DEVICE(device));
+					console.log('%s %s Sending %s component(s)…', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(total));
 					await sendPlaygroundComponents(user.id, playground.id, elements);
 				}
 
-				console.log('%s Created [%s] playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.buildID}/${playground.id}/views`));
+				console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.buildID}/${playground.id}/views`));
 			}
-
-
-//			const urls = await Promise.all(renders.map(async(render, i)=> {
-//				const { device, elements } = render;
-//				console.log('%s Generating [%s] playground (%s/%s)…',  ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1), ChalkStyles.NUMBER(renders.length));
-//
-//				const { buildID } = await getPlayground();
-//				const playground = await createPlayground((buildID || -1), user.id, render.device, render.doc);
-//				await writePlayground(playground);
-//
-//				if (SEND_ELEMENTS) {
-//					const total = Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val));
-//					console.log('\n%s Sending %s component(s)…', ChalkStyles.INFO, ChalkStyles.NUMBER(total));
-//					await sendPlaygroundComponents(user.id, playground.id, elements);
-//
-////					return ({ ...render, playground, components });
-//
-//				} else {
-////					return ({ ...render, playground,
-////						components : null
-////					});
-//				}
-//
-////				console.log('%s Created [%s] playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/team-name/${Strings.slugifyURI(render.doc.title)}/${render.playground.build_id}/${render.playground.id}/views`));
-//				return ('%s Created [%s] playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/team-name/${Strings.slugifyURI(render.doc.title)}/${playground.build_id}/${playground.id}/views`));
-//			}));
-//
-//
-//			urls.forEach((url)=> {
-//				console.log(url);
-//			});
-
-
-//			renders = await Promise.all(renders.map(async(render, i)=> {
-//				const { device, elements } = render;
-//				console.log('%s Generating [%s] playground (%s/%s)…',  ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1), ChalkStyles.NUMBER(renders.length));
-//
-//				const { buildID } = await getPlayground();
-//				const playground = await createPlayground((buildID || -1), user.id, render.device, render.doc);
-//				await writePlayground(playground);
-//
-//				if (SEND_ELEMENTS) {
-//					const total = Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val));
-//					console.log('\n%s Sending %s component(s)…', ChalkStyles.INFO, ChalkStyles.NUMBER(total));
-//					const components = await sendPlaygroundComponents(user.id, playground.id, elements);
-//
-//					return ({ ...render, playground, components });
-//
-//				} else {
-//					return ({ ...render, playground,
-//						components : null
-//					});
-//				}
-//			}));
 		}
-
-//		if (MAKE_PLAYGROUND && SEND_ELEMENTS) {
-//			const totalElements = renders.map(({ elements })=> (Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val)))).reduce((acc, val)=> (acc + val));
-//			console.log('\n%s Sending all %s component(s)…', ChalkStyles.INFO, ChalkStyles.NUMBER(totalElements));
-//			renders = await Promise.all(renders.map(async(render)=> {
-//				const { playground, elements } = render;
-//				const response = await sendPlaygroundComponents(user.id, playground.id, elements);
-//
-//				return ({ ...render,
-//					components : response
-//				})
-//			}));
-//		}
-
-//		if (MAKE_PLAYGROUND) {
-//			renders.forEach((render)=> {
-//				const { device } = render;
-//				console.log('%s Created [%s] playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/team-name/${Strings.slugifyURI(render.doc.title)}/${render.playground.build_id}/${render.playground.id}/views`));
-//			});
-//		}
 
 		const elapsed = `${(((Date.now() - startDate) * 0.001) << 0)}`;
 		console.log('\n%s Finished in %s seconds.', ChalkStyles.DONE, ChalkStyles.NUMBER(elapsed));
 
 		await dropPlayground();
+
 		/*
 		if (!opened) {
 			await writeCache('playground_open', true);

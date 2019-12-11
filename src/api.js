@@ -22,7 +22,7 @@ export async function disableAccount(user) {
 		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
 	}
 
-	console.log('DISABLE_ACCOUNT -->>', response);
+//	console.log('DISABLE_ACCOUNT -->>', response);
 	return (response.user);
 }
 
