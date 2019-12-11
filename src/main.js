@@ -63,7 +63,7 @@ export async function parseBuild() {
 					await sendPlaygroundComponents(user.id, playground.id, elements);
 				}
 
-				console.log('%s Created [%s] playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/team-name/${Strings.slugifyURI(render.doc.title)}/${playground.buildID}/${playground.id}/views`));
+				console.log('%s Created [%s] playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.buildID}/${playground.id}/views`));
 			}
 
 
