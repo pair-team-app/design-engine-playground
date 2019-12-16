@@ -21,7 +21,7 @@ export const MIME_TYPES = {
 	js   : 'application/javascript'
 };
 
-export const API_ENDPT_URL = 'https://api.designengine.ai/playgrounds.php';
+export const API_ENDPT_URL = 'https://api.designengine.ai/v2/pairurl.php';
 export const FETCH_CFG = {
 	method  : 'POST',
 	headers : { 'Content-Type' : 'application/json' },
@@ -32,12 +32,11 @@ export const FETCH_CFG = {
 };
 
 export const ChalkStyles = {
-	INFO   : chalk.cyanBright('INFO'),
+	INFO   : chalk.cyanBright.bold('INFO'),
 	ERROR  : chalk.red.bold('ERROR'),
-	DONE   : chalk.greenBright('DONE'),
-//	DEVICE : chalk.grey,
-	DEVICE : (val)=> (`[${chalk.grey(val)}]`),
-	NUMBER : (val, bare=false)=> ((bare) ? chalk.magentaBright(val) : `(${chalk.magentaBright(val)})`),
-	PATH   : chalk.blueBright,
-	URL    : chalk.blue.bold.underline
+	DONE   : chalk.greenBright.bold('DONE'),
+	DEVICE : (val)=> (`[${chalk.grey.bold(val)}]`),
+	NUMBER : (val, bare=false)=> ((bare) ? chalk.yellow.bold(val) : `(${chalk.yellow.bold(val)})`),
+	PATH   : chalk.magenta.bold,
+	URL    : chalk.blueBright.bold.underline
 };
