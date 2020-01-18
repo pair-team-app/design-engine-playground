@@ -4,7 +4,6 @@
 
 import chalk from 'chalk';
 
-
 export const CMD_PARSE = 'npx pair-url --parse';
 
 export const HOSTNAME = '127.0.0.1';
@@ -21,7 +20,7 @@ export const MIME_TYPES = {
 	js   : 'application/javascript'
 };
 
-export const API_ENDPT_URL = 'https://api.designengine.ai/v2/pairurl.php';
+export const API_ENDPT_URL = 'https://api.designengine.ai/v2/pairurl-2.php';
 export const FETCH_CFG = {
 	method  : 'POST',
 	headers : { 'Content-Type' : 'application/json' },

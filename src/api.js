@@ -43,7 +43,7 @@ export async function loginUser(user) {
 		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
 	}
 
-//	console.log('LOGIN -->>', response);
+	console.log('LOGIN -->>', response);
 	return (response.user);
 }
 
@@ -67,10 +67,10 @@ export async function registerUser(user) {
 		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
 	}
 
-//	console.log('REGISTER -->>', response);
+	console.log('REGISTER -->>', response);
 
 	const status = parseInt(response.status, 16);
-	if (status === 0x00) {
+	if (status === 0x11) {
 		return (response.user);
 	}
 
