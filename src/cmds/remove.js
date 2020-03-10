@@ -7,7 +7,7 @@ import fs from 'fs';
 import inquirer from 'inquirer';
 
 import { disableAccount } from '../api';
-import {flushAll, getUser} from '../cache';
+import { flushAll, getUser } from '../cache';
 import { CMD_PARSE, ChalkStyles } from '../consts';
 import { checkDir, normalize, prettyPrint, savePackage } from '../utils';
 
