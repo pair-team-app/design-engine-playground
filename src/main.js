@@ -67,27 +67,6 @@ export async function parseBuild() {
 			console.log('%s %s Completed parsing: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), [ ...Object.keys(elements).filter((key)=> (key !== 'links')).map((key)=> (`${ChalkStyles.NUMBER(elements[key].length)} ${Strings.pluralize(key.slice(0, -1), elements[key].length)}`)), `${ChalkStyles.NUMBER(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} ${Strings.pluralize('color', Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))}`, `${ChalkStyles.NUMBER(doc.fonts.length)} ${Strings.pluralize('font', doc.fonts.length)}`].join(', '));
 		});
 
-		// aws multer
-/*		const spacesEndpoint = new aws.Endpoint('sfo2.digitaloceanspaces.com');
-		const s3 = new aws.S3({ endpoint : spacesEndpoint });
-
-		// Change bucket property to your Space name
-		const upload = multer({
-			storage  : multerS3({
-				s3     : s3,
-				bucket : 'pairurl',
-				acl    : 'public-read',
-				key    : (request, file, cb)=> {
-					console.log(file);
-					cb(null, file.originalname);
-				}
-			})
-		}).array('upload', 1);
-*/
-
-
-
-
 
 		
 
