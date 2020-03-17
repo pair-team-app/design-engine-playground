@@ -21,7 +21,7 @@ export const MIME_TYPES = {
 };
 
 // export const API_ENDPT_URL = 'https://api.designengine.ai/v2/pairurl-2.php';
-export const API_ENDPT_URL = 'http://157.230.173.158/api-test/v4/pairurl.php';
+export const API_ENDPT_URL = 'http://api.pairurl.com/v4/pairurl.php';
 export const FETCH_CFG = {
 	method  : 'POST',
 	headers : { 'Content-Type' : 'application/json' },

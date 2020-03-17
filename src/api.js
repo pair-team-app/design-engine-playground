@@ -7,6 +7,8 @@ import { API_ENDPT_URL, FETCH_CFG, ChalkStyles } from './consts'
 
 
 export async function disableAccount(user) {
+	console.log('disableAccount()', JSON.stringify({ userID }, null, 2));
+
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
 			action  : 'DISABLE_ACCOUNT',
@@ -28,6 +30,8 @@ export async function disableAccount(user) {
 
 
 export async function loginUser(user) {
+	console.log('sendPlaygroundComponents()', JSON.stringify({ user }, null, 2));
+
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
 			action  : 'LOGIN',
@@ -49,6 +53,8 @@ export async function loginUser(user) {
 
 
 export async function registerUser(user) {
+	console.log('sendPlaygroundComponents()', JSON.stringify({ user }, null, 2));
+
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
 			action  : 'REGISTER',
@@ -79,6 +85,8 @@ export async function registerUser(user) {
 
 
 export async function teamLookup(user) {
+	console.log('sendPlaygroundComponents()', JSON.stringify({ user }, null, 2));
+
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
 			action  : 'TEAM_LOOKUP',
@@ -94,6 +102,8 @@ export async function teamLookup(user) {
 		console.log('%s Couldn\'t parse response! %s', ChalkStyles.ERROR, e);
 	}
 
-//	console.log('TEAM_LOOKUP -->>', response);
-	return (response.teams.shift());
+	const { team } = response;
+	console.log('TEAM_LOOKUP -->>', { team });
+	
+	return (team);
 }

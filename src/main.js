@@ -14,7 +14,7 @@ import { Strings } from 'lang-js-utils';
 
 import {
 	initCache,
-//	getAll,
+	getAll,
 	dropPlayground,
 	getPlayground,
 	writePlayground,
@@ -28,7 +28,7 @@ import { makeServer } from './server';
 export async function parseBuild() {
 	await initCache();
 
-//	console.log('cache', await getAll());
+	console.log('cache', await getAll());
 
 	// const files = await new Uploader({
 	// 		config: './.awss3rc', // can also use environment variables
@@ -92,7 +92,8 @@ export async function parseBuild() {
 					await sendPlaygroundComponents(user.id, playground.id, elements);
 				}
 
-				console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.buildID}/${playground.id}/views`));
+				// console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.id}/views`));
+				console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`http://dev.pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.id}/views`));
 			}
 		}
 

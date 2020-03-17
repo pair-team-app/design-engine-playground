@@ -7,7 +7,7 @@ import fs from 'fs';
 import inquirer from 'inquirer';
 
 import { registerUser, teamLookup } from '../api';
-import { initCache, getUser, writeTeam, writeUser, reset, flushAll } from '../cache';
+import { initCache, getUser, writeTeam, writeUser, reset, flushAll, getTeam } from '../cache';
 import { CMD_PARSE, ChalkStyles } from '../consts';
 import { checkDir, normalize, prettyPrint, savePackage } from '../utils';
 
@@ -28,6 +28,7 @@ promise.promisifyAll(require('fs'));
 //	await flushAll();
 
 	let user = await getUser();
+	let team = await getTeam();
 	console.log('USER >>', user);
 	if (!user) {
 		await reset();
@@ -54,6 +55,12 @@ promise.promisifyAll(require('fs'));
 		const team = await teamLookup(user);
 		await writeTeam(team);
 	}
+
+	if (!team || team.id === 0) {
+		const team = await teamLookup(user);
+		await writeTeam(team);
+	}
+
 
 
 	const pkgPath = await checkDir();
