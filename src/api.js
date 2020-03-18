@@ -7,7 +7,7 @@ import { API_ENDPT_URL, FETCH_CFG, ChalkStyles } from './consts'
 
 
 export async function disableAccount(user) {
-	console.log('disableAccount()', JSON.stringify({ userID }, null, 2));
+	console.log('disableAccount()', JSON.stringify({ user }, null, 2));
 
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
@@ -30,7 +30,7 @@ export async function disableAccount(user) {
 
 
 export async function loginUser(user) {
-	console.log('sendPlaygroundComponents()', JSON.stringify({ user }, null, 2));
+	console.log('loginUser()', JSON.stringify({ user }, null, 2));
 
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
@@ -53,7 +53,7 @@ export async function loginUser(user) {
 
 
 export async function registerUser(user) {
-	console.log('sendPlaygroundComponents()', JSON.stringify({ user }, null, 2));
+	console.log('registerUser()', JSON.stringify({ user }, null, 2));
 
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
@@ -85,7 +85,7 @@ export async function registerUser(user) {
 
 
 export async function teamLookup(user) {
-	console.log('sendPlaygroundComponents()', JSON.stringify({ user }, null, 2));
+	console.log('teamLookup()', JSON.stringify({ user }, null, 2));
 
 	const cfg = { ...FETCH_CFG,
 		body : JSON.stringify({ ...FETCH_CFG.body,
