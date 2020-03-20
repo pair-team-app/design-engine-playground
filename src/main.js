@@ -93,7 +93,7 @@ export async function parseBuild() {
 				}
 
 				// console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.id}/views`));
-				console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`http://dev.pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.id}/views`));
+				console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`http://dev.pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${buildID}/views`));
 			}
 		}
 

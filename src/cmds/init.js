@@ -56,11 +56,11 @@ promise.promisifyAll(require('fs'));
 		await writeTeam(team);
 	}
 
+	let team = await getTeam();
 	if (!team || team.id === 0) {
 		const team = await teamLookup(user);
 		await writeTeam(team);
 	}
-
 
 
 	const pkgPath = await checkDir();
