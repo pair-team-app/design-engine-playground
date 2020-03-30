@@ -28,7 +28,8 @@ import { makeServer } from './server';
 export async function parseBuild() {
 	await initCache();
 
-	console.log('cache', await getAll());
+	const allCache = await getAll();
+	console.log('cache', { user : allCache.user.id, team : allCache.team.id });
 
 	// const files = await new Uploader({
 	// 		config: './.awss3rc', // can also use environment variables
@@ -51,7 +52,7 @@ export async function parseBuild() {
 
 	const user = await getUser();
 	const team = await getTeam();
-	if (!user) {
+	if (!user || !team) {
 		// do signup here
 	}
 
@@ -76,11 +77,15 @@ export async function parseBuild() {
 				const render = renders[i];
 
 				const { device, doc, elements } = render;
-				console.log('%s %s Generating playground (%s/%s)…', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1, true), ChalkStyles.NUMBER(renders.length, true));
+				console.log('\n%s %s Generating playground (%s/%s)…', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1, true), ChalkStyles.NUMBER(renders.length, true));
 
 				const { buildID } = await getPlayground();
 				// const playground = await createPlayground((buildID || -1), user.id, team.id, device, doc);
-				const playground = await createPlayground((buildID || -1), user.id, 78, device, doc);
+				const playground = await createPlayground({ doc, device, 
+					userID  : user.id, 
+					teamID  : team.id,
+					buildID : (buildID || -1)
+				});
 
 				if (!buildID) {
 					await writePlayground(playground);
@@ -89,11 +94,17 @@ export async function parseBuild() {
 				if (SEND_ELEMENTS) {
 					const total = Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val));
 					console.log('%s %s Sending %s component(s)…', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(total));
-					await sendPlaygroundComponents(user.id, playground.id, elements);
+					await sendPlaygroundComponents({
+						userID       : user.id, 
+						teamID       : team.id, 
+						buildID      : playground.build_id,
+						playgroundID : playground.id,
+						components   : elements
+					});
 				}
 
 				// console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`https://pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.id}/views`));
-				console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`http://dev.pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${buildID}/views`));
+				console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`http://dev.pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.build_id}/${Strings.slugifyURI(device)}/views`));
 			}
 		}
 
