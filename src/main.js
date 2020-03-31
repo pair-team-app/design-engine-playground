@@ -6,11 +6,8 @@
 // import multer from 'multer';
 // import multerS3 from 'multer-s3';
 // import Uploader from 's3-batch-upload';
-import { renderWorker } from 'design-engine-extract';
-import { createPlayground, sendPlaygroundComponents } from 'design-engine-extract';
+import { renderWorker, createPlayground, sendPlaygroundComponents } from 'design-engine-extract';
 import { Strings } from 'lang-js-utils';
-
-
 
 import {
 	initCache,
@@ -69,9 +66,7 @@ export async function parseBuild() {
 		});
 
 
-		
-
-
+	
 		if (MAKE_PLAYGROUND) {
 			for (let i=0; i<renders.length; i++) {
 				const render = renders[i];
