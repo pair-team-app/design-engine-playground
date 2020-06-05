@@ -12,7 +12,7 @@ import {
 	getPlayground,
 	writePlayground,
 	getTeam,
-	getUser } from './cache';
+	getUser, hasUser, hasTeam } from './cache';
 import { MAKE_PLAYGROUND, SEND_ELEMENTS } from './config';
 import { PORT, ChalkStyles } from './consts';
 import { makeServer } from './server';
@@ -22,13 +22,17 @@ export async function parseBuild() {
 	await initCache();
 
 	const allCache = await getAll();
-	console.log('cache', { user : allCache.user.id, team : allCache.team.id });
+	// console.log('//////--> allCache', { user : allCache.user.id, team : allCache.team.id });
+	console.log('////// CACHE //////-->', { allCache });
+	console.log('////// user //////-->', { hasTeam : await hasTeam(), hasUser : await hasUser(), getUser : await getUser(), getTeam : await getTeam() });
+
+	
+	if (!(await hasTeam()) || !(await hasUser())) {
+		require('./cmds/init');
+	}
 
 	const user = await getUser();
 	const team = await getTeam();
-	if (!user || !team) {
-		// do signup here
-	}
 
 	const startDate = Date.now();
 	const server = await makeServer(async()=> {

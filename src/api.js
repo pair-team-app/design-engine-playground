@@ -48,6 +48,13 @@ export async function loginUser(user) {
 	}
 
 	console.log('LOGIN -->>', response);
+
+	const status = parseInt(response.status, 16);
+	if (status !== 0x11) {
+		return (response.user);
+	}
+
+
 	return (response.user);
 }
 
