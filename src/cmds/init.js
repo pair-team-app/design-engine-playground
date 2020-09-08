@@ -49,19 +49,26 @@ promise.promisifyAll(require('fs'));
 		}];
 
 		const prompt = await inquirer.prompt(questions);
-		user = await registerUser(prompt);
-		await writeUser({ ...user });
+		// user = await registerUser(prompt);
+		// await writeUser({ ...user });
 
-		const team = await teamLookup(user);
-		await writeTeam(team);
+		// const team = await teamLookup(user);
+		// await writeTeam(team);
 	}
 
-	team = await getTeam();
+	await writeUser({
+		id : 542
+	});
+
+	// team = await getTeam();
 	if (!team || team.id === 0) {
-		const team = await teamLookup(user);
+		// const team = await teamLookup(user);
 		await writeTeam(team);
 	}
 
+	await writeTeam({
+		id : 87
+	});
 
 	const pkgPath = await checkDir();
 	const prompt = await inquirer.prompt({
