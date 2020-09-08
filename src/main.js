@@ -1,65 +1,96 @@
 #!/usr/bin/env node
 'use strict';
 
-import chalk from 'chalk';
-import { renderWorker } from 'design-engine-extract';
-import { createPlayground, sendPlaygroundComponents } from 'design-engine-extract';
+
+import { renderWorker, createPlayground, sendPlaygroundComponents } from 'design-engine-extract';
+import { Strings } from 'lang-js-utils';
 
 import {
+	initCache,
 	getAll,
-	getUser,
-	reset,
-	writePlayground } from './cache';
-import { PORT } from './consts';
+	dropPlayground,
+	getPlayground,
+	writePlayground,
+	getTeam,
+	getUser, hasUser, hasTeam } from './cache';
+import { MAKE_PLAYGROUND, SEND_ELEMENTS } from './config';
+import { PORT, ChalkStyles } from './consts';
 import { makeServer } from './server';
-
-//const access = promise.promisify(fs.access);
 
 
 export async function parseBuild() {
-	const caches = (!getUser()) ? reset() : getAll();
-	const { user, playgrounds } = caches;
+	await initCache();
 
-	if (user.id === 0) {
-		// do signup here
+	const allCache = await getAll();
+	// console.log('//////--> allCache', { user : allCache.user.id, team : allCache.team.id });
+	console.log('////// CACHE //////-->', { allCache });
+	console.log('////// user //////-->', { hasTeam : await hasTeam(), hasUser : await hasUser(), getUser : await getUser(), getTeam : await getTeam() });
+
+	
+	if (!(await hasTeam()) || !(await hasUser())) {
+		require('./cmds/init');
 	}
 
+	const user = await getUser();
+	const team = await getTeam();
+
+	const startDate = Date.now();
 	const server = await makeServer(async()=> {
-		let renders = await renderWorker(`http://localhost:${PORT}`);
+
+		const renders = await renderWorker(`http://localhost:${PORT}/`);
 		server.close();
 
-		renders.forEach((render)=> {
+		renders.forEach((render, i)=> {
 			const { device, doc, elements } = render;
-			console.log('%s [%s]: %s', chalk.cyan.bold('INFO'), chalk.grey(device), [ ...Object.keys(elements).map((key)=> (`${chalk.magenta.bold(elements[key].length)} ${key}(s)`)), `${chalk.magenta.bold(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} colors(s)`, `${chalk.magenta.bold(doc.fonts.length)} fonts(s)`].join(', '));
+			console.log('%s %s Completed parsing: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), [ ...Object.keys(elements).map((key)=> (`${ChalkStyles.NUMBER(elements[key].length)} ${Strings.pluralize(key.slice(0, -1), elements[key].length)}`)), `${ChalkStyles.NUMBER(Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))} ${Strings.pluralize('color', Object.keys(doc.colors).map((key)=> (doc.colors[key].length)).reduce((acc, val)=> (acc + val)))}`, `${ChalkStyles.NUMBER(doc.fonts.length)} ${Strings.pluralize('font', doc.fonts.length)}`].join(', '));
 		});
 
-		renders = await Promise.all(renders.map(async(render, i)=> {
-			const { device } = render;
-			console.log('%s Generating playground %d/%d [%s]…', chalk.cyan.bold('INFO'), (i+1), renders.length, chalk.grey(device));
-			return ({ ...render,
-				playground : await createPlayground(user.id, render.device, render.doc)
-			});
-		}));
 
-		const totalElements = renders.map(({ elements })=> (Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val)))).reduce((acc, val)=> (acc + val));
-		console.log('\n%s Sending all %s component(s)…', chalk.cyan.bold('INFO'), chalk.magenta.bold(totalElements));
-		renders = await Promise.all(renders.map(async(render)=> {
-			const { playground, elements } = render;
+	
+		if (MAKE_PLAYGROUND) {
+			for (let i=0; i<renders.length; i++) {
+				const render = renders[i];
 
-			writePlayground(playground);
-			const response = await sendPlaygroundComponents(playground.id, elements);
-//			console.log(response);
+				const { device, doc, elements } = render;
+				console.log('\n%s %s Generating playground (%s/%s)…', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(i + 1, true), ChalkStyles.NUMBER(renders.length, true));
 
-			return ({ ...render,
-				components : response
-			})
-		}));
+				const { buildID } = await getPlayground();
+				const playground = await createPlayground({ doc, device, 
+					userID  : user.id, 
+					teamID  : team.id,
+					buildID : (buildID || -1)
+				});
 
+				if (!buildID) {
+					await writePlayground(playground);
+				}
 
-//		console.log('%s Playground created! %s', chalk.green.bold('DONE'), chalk.blue.bold(`http://playground.designengine.ai/spectrum-adobe-${renders.reverse()[0].playground.id}`));
-//		if (!opened) {
-//			await writeCache('playground_open', true);
-//			open(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`);
-//		}
+				if (SEND_ELEMENTS) {
+					const total = Object.keys(elements).map((key)=> (elements[key].length)).reduce((acc, val)=> (acc + val));
+					console.log('%s %s Sending %s component(s)…', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.NUMBER(total));
+					await sendPlaygroundComponents({
+						userID       : user.id, 
+						teamID       : team.id, 
+						buildID      : playground.build_id,
+						playgroundID : playground.id,
+						components   : elements
+					});
+				}
+
+				console.log('%s %s Created playground: %s', ChalkStyles.INFO, ChalkStyles.DEVICE(device), ChalkStyles.URL(`http://dev.pairurl.com/app/${Strings.slugifyURI(team.title)}/${Strings.slugifyURI(render.doc.title)}/${playground.build_id}/${Strings.slugifyURI(device)}`));
+			}
+		}
+
+		const elapsed = `${(((Date.now() - startDate) * 0.001) << 0)}`;
+		console.log('\n%s Finished in %s seconds.', ChalkStyles.DONE, ChalkStyles.NUMBER(elapsed));
+
+		await dropPlayground();
+
+		/*
+		if (!opened) {
+			await writeCache('playground_open', true);
+			open(`http://playground.designengine.ai/spectrum-adobe-${playground.id}`);
+		}
+		*/
 	});
 }

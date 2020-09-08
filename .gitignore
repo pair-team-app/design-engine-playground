@@ -4,6 +4,7 @@
 ._DS_STORE
 
 #-- ide stuff --#
+.history
 .idea
 
 #-- compile stuff --#

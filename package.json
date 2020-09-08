@@ -1,10 +1,10 @@
 {
     "name": "design-engine-playground",
-    "version": "0.3.0",
+    "version": "0.10.0",
     "description": "A CLI to create a design engine playground",
     "main": "src/index.js",
     "bin": {
-        "design-engine": "src/index.js"
+        "design-engine-playground": "src/index.js"
     },
     "publishConfig": {
         "access": "public"
@@ -62,6 +62,9 @@
         "design-engine-extract": "^0.2.0",
         "esm": "^3.2.25",
         "inquirer": "^7.0.0",
+        "node-cache": "^5.1.2",
+        "node-fetch": "^2.6.0",
+        "node-persist": "^3.0.5",
         "open": "^6.4.0",
         "shelljs": "^0.8.3"
     }
